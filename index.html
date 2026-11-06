@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f5f7f4" />
+  <meta name="description" content="Bản đồ tương tác 34 tỉnh, thành phố, các địa danh Hoàng Sa và Trường Sa, cùng thông tin văn hóa Việt Nam." />
+  <title>Bản đồ Việt Nam | 34 tỉnh, thành · Hoàng Sa · Trường Sa</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+
+  <style>
+    :root {
+      --ink: #172a2c;
+      --muted: #6e7e7c;
+      --line: #e4eae5;
+      --paper: #f5f7f4;
+      --card: #ffffff;
+      --green: #176b56;
+      --green-dark: #0d4c3c;
+      --mint: #e6f2eb;
+      --gold: #d6a65d;
+      --shadow: 0 18px 50px rgba(24, 53, 44, .08);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 7% 0%, rgba(205, 229, 215, .42), transparent 28rem),
+        radial-gradient(circle at 95% 14%, rgba(232, 218, 190, .24), transparent 25rem),
+        var(--paper);
+      font-family: "Be Vietnam Pro", system-ui, sans-serif;
+    }
+
+    .shell { width: min(1440px, calc(100% - 48px)); margin: 0 auto; }
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 24px 0 18px; gap: 20px;
+    }
+    .brand { display: flex; align-items: center; gap: 13px; }
+    .brand-mark {
+      width: 44px; height: 44px; border-radius: 15px; display: grid; place-items: center;
+      color: #fff; font-size: 21px; font-weight: 800;
+      background: linear-gradient(145deg, #1b8064, #0e4c3e);
+      box-shadow: 0 9px 20px rgba(23, 107, 86, .22);
+    }
+    .brand-title { font-size: 13px; letter-spacing: .16em; font-weight: 800; text-transform: uppercase; }
+    .brand-sub { color: var(--muted); font-size: 11px; margin-top: 3px; letter-spacing: .04em; }
+    .top-pill {
+      display: inline-flex; align-items: center; gap: 8px; padding: 9px 13px;
+      border: 1px solid #dce8df; background: rgba(255,255,255,.72); border-radius: 999px;
+      color: var(--green-dark); font-size: 11px; font-weight: 700; letter-spacing: .04em;
+    }
+    .pulse { width: 7px; height: 7px; background: #32a57a; border-radius: 50%; box-shadow: 0 0 0 4px #e4f3e9; }
+
+    .hero { padding: 30px 0 23px; }
+    .eyebrow { color: var(--green); text-transform: uppercase; letter-spacing: .19em; font-size: 10px; font-weight: 800; }
+    h1 {
+      font-family: "DM Serif Display", Georgia, serif; font-size: clamp(36px, 5vw, 63px);
+      line-height: 1.04; letter-spacing: -.025em; font-weight: 400; margin: 12px 0 11px;
+    }
+    h1 span { color: var(--green); }
+    .hero-copy { color: var(--muted); max-width: 710px; font-size: 13px; line-height: 1.8; margin: 0; }
+
+    .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 18px 0 22px; max-width: 630px; }
+    .stat {
+      display: flex; align-items: center; gap: 11px; padding: 13px 15px; border-radius: 15px;
+      background: rgba(255,255,255,.76); border: 1px solid rgba(222,231,224,.9);
+    }
+    .stat-icon { width: 33px; height: 33px; display:grid; place-items:center; border-radius: 11px; background: var(--mint); color: var(--green); font-size: 16px; }
+    .stat strong { display: block; font-size: 19px; line-height: 1.1; }
+    .stat small { display: block; color: var(--muted); font-size: 10px; margin-top: 4px; }
+
+    .workspace {
+      display: grid; grid-template-columns: minmax(0, 1.72fr) minmax(340px, .82fr);
+      gap: 17px; align-items:stretch; margin-bottom:24px;
+    }
+    .map-card, .side-card {
+      height: 740px; min-height: 0; background: var(--card);
+      border: 1px solid rgba(221,230,223,.95); border-radius: 22px;
+      box-shadow: var(--shadow); overflow: hidden;
+    }
+    .map-card { display:flex; flex-direction:column; }
+    .map-head {
+      display:flex; justify-content:space-between; align-items:center; gap:16px; padding: 18px 20px 14px;
+      border-bottom: 1px solid #edf1ed;
+    }
+    .section-title { font-size: 13px; font-weight: 800; letter-spacing: -.01em; }
+    .section-sub { color: var(--muted); font-size: 10px; margin-top: 4px; }
+    .map-actions { display:flex; gap:7px; align-items:center; }
+    .icon-btn {
+      border: 1px solid var(--line); background:#fff; color:#52635f; border-radius:10px; width:34px; height:34px;
+      display:grid; place-items:center; cursor:pointer; transition:.2s ease; font-size:15px;
+    }
+    .icon-btn:hover { color:var(--green); border-color:#b6d4c4; background:#f5faf6; transform:translateY(-1px); }
+    .map-wrap { position:relative; display:flex; flex:1 1 0%; height:0; min-height:0; overflow:hidden; background:#e6f0f3; }
+    #map { flex:1 1 auto; height:100%; min-height:0; width:100%; background:#e4f0f2; outline:none; }
+    /* Nền biển dạng vector: không gọi máy chủ tile bên ngoài nên không còn lỗi 403/Access blocked. */
+    .leaflet-container {
+      background-color:#e4f0f2;
+      background-image:
+        radial-gradient(ellipse at 18% 17%, rgba(255,255,255,.75), transparent 34%),
+        radial-gradient(ellipse at 82% 75%, rgba(190,220,224,.34), transparent 38%),
+        linear-gradient(135deg, rgba(255,255,255,.22) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.18) 50%, rgba(255,255,255,.18) 75%, transparent 75%, transparent);
+      background-size:auto,auto,44px 44px;
+    }
+    .leaflet-pane.leaflet-overlay-pane svg { overflow:visible; }
+    .map-hint {
+      position:absolute; z-index:500; left:16px; bottom:15px; max-width:250px;
+      background:rgba(255,255,255,.93); border:1px solid rgba(223,232,225,.95); border-radius:12px;
+      padding:10px 12px; box-shadow:0 8px 24px rgba(30,60,48,.08); pointer-events:none;
+      color:#63726c; font-size:10px; line-height:1.6; backdrop-filter: blur(8px);
+    }
+    .map-hint b { color:var(--green-dark); }
+    .map-loader {
+      position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column;
+      gap:12px; background:rgba(240,245,241,.92); z-index:700; color:var(--green-dark); text-align:center; padding:24px;
+      transition:opacity .35s ease;
+    }
+    .map-loader.hidden { opacity:0; pointer-events:none; }
+    .spinner { width:30px; height:30px; border:3px solid #d5e7dc; border-top-color:var(--green); border-radius:50%; animation:spin .8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .loader-main { font-size:12px; font-weight:800; }
+    .loader-sub { font-size:10px; color:var(--muted); max-width:300px; line-height:1.6; }
+
+    .side-card { display:flex; flex-direction:column; }
+    .side-top { padding:18px 18px 15px; border-bottom:1px solid #edf1ed; }
+    .side-topline { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .count-label { color:var(--muted); font-size:10px; }
+    .count-label b { color:var(--green-dark); }
+    .search-box { position:relative; margin-top:14px; }
+    .search-box span { position:absolute; left:13px; top:50%; transform:translateY(-50%); color:#86938c; font-size:14px; }
+    .search-box input {
+      width:100%; border:1px solid #e1e9e2; background:#f8faf8; border-radius:11px; outline:none;
+      height:41px; padding:0 13px 0 38px; font:500 11px "Be Vietnam Pro",sans-serif; color:var(--ink); transition:.2s;
+    }
+    .search-box input:focus { border-color:#8db9a2; background:#fff; box-shadow:0 0 0 3px rgba(48,139,101,.09); }
+    .filter-row { display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
+    .filter {
+      border:1px solid #e4eae5; background:#fff; border-radius:999px; padding:6px 10px;
+      color:#6c7a74; font:600 9px "Be Vietnam Pro",sans-serif; cursor:pointer; transition:.2s;
+    }
+    .filter.active { border-color:#b8d8c5; background:#edf6f0; color:var(--green-dark); }
+    .province-list { padding:9px 10px 13px; overflow:auto; flex:0 0 235px; max-height:none; min-height:150px; }
+    .province-item {
+      display:flex; align-items:center; gap:10px; width:100%; text-align:left; border:0; background:transparent;
+      border-radius:11px; padding:9px 10px; cursor:pointer; color:var(--ink); transition:.17s;
+      font-family:inherit;
+    }
+    .province-item:hover { background:#f4f8f4; }
+    .province-item.active { background:#eaf4ed; box-shadow:inset 3px 0 #21805e; }
+    .province-dot { width:9px; height:9px; border-radius:3px; flex:0 0 auto; background:#7eae91; }
+    .province-name { font-size:10px; font-weight:700; flex:1; }
+    .province-type { color:#89958e; font-size:8px; }
+    .empty-list { padding:25px 12px; color:var(--muted); font-size:10px; text-align:center; }
+
+    .detail {
+      border-top:1px solid #edf1ed; margin-top:0; padding:17px 18px 18px;
+      background:linear-gradient(180deg,#fff,#fbfdfb); flex:1; min-height:0; overflow:auto;
+    }
+    .detail-kicker { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .tag {
+      display:inline-flex; align-items:center; padding:5px 8px; border-radius:999px; background:#edf6f0;
+      color:var(--green-dark); font-size:8px; font-weight:800; letter-spacing:.04em;
+    }
+    .detail-code { color:#9aa49e; font-size:9px; }
+    .detail h2 { font-family:"DM Serif Display",Georgia,serif; font-size:27px; font-weight:400; margin:10px 0 3px; line-height:1.12; }
+    .detail-region { color:var(--muted); font-size:10px; }
+    .detail-desc { font-size:10px; color:#667570; line-height:1.7; margin:13px 0 14px; }
+    .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .detail-metric { border:1px solid #e8eee9; background:#fff; border-radius:11px; padding:9px 10px; }
+    .detail-metric small { display:block; color:#87938c; font-size:8px; margin-bottom:5px; }
+    .detail-metric strong { display:block; color:#243c34; font-size:12px; }
+    .detail-section { margin-top:13px; }
+    .detail-section label { display:block; font-size:8px; letter-spacing:.12em; text-transform:uppercase; color:#8a9890; font-weight:800; margin-bottom:6px; }
+    .detail-section p { margin:0; font-size:10px; line-height:1.65; color:#4f625a; }
+    .landmark-chip { display:inline-block; background:#f4f7f4; border:1px solid #e7ede8; border-radius:7px; padding:5px 7px; margin:3px 4px 0 0; color:#5e7067; font-size:9px; }
+    .initial-state { text-align:center; padding:22px 8px 20px; color:var(--muted); }
+    .initial-state .pin { font-size:27px; opacity:.65; margin-bottom:7px; }
+    .initial-state strong { display:block; color:#53645c; font-size:11px; margin-bottom:5px; }
+    .initial-state span { display:block; font-size:9px; line-height:1.6; max-width:220px; margin:auto; }
+
+    .foot {
+      display:flex; justify-content:space-between; gap:20px; align-items:flex-start; padding: 4px 2px 32px;
+      color:#829089; font-size:9px; line-height:1.7;
+    }
+    .foot a { color:var(--green); text-decoration:none; border-bottom:1px solid #c5dccc; }
+    .foot a:hover { color:var(--green-dark); }
+    .foot-right { text-align:right; white-space:nowrap; }
+    .leaflet-container { font-family:"Be Vietnam Pro",sans-serif; }
+    .leaflet-tooltip.province-tooltip {
+      border:0; border-radius:9px; padding:7px 10px; background:#163e33; color:#fff;
+      box-shadow:0 8px 22px rgba(12,54,40,.2); font-size:10px; font-weight:700;
+    }
+    .leaflet-tooltip.province-tooltip:before { border-top-color:#163e33; }
+    .leaflet-control-zoom { border:0!important; box-shadow:0 5px 18px rgba(28,62,49,.12)!important; }
+    .leaflet-control-zoom a { border:0!important; color:#36574b!important; }
+    .leaflet-control-attribution { font-size:8px!important; background:rgba(255,255,255,.7)!important; }
+
+    @media (max-width: 980px) {
+      .workspace { grid-template-columns:1fr; }
+      .map-card { height:620px; }
+      .side-card { height:auto; min-height:0; }
+      .province-list { flex:0 0 auto; max-height:270px; }
+      .detail { flex:0 0 auto; max-height:none; overflow:visible; }
+      #map { height:100%; min-height:0; }
+    }
+    @media (max-width: 620px) {
+      .shell { width:calc(100% - 26px); }
+      .topbar { padding-top:17px; }
+      .top-pill { font-size:9px; padding:8px 10px; }
+      .brand-sub { display:none; }
+      .hero { padding-top:23px; }
+      .stats { gap:7px; }
+      .stat { padding:10px 9px; gap:7px; }
+      .stat-icon { width:28px; height:28px; }
+      .stat strong { font-size:16px; }
+      .stat small { font-size:8px; }
+      .map-card,.side-card { border-radius:17px; }
+      .map-head { padding:14px; }
+      .map-card { height:540px; }
+      #map { height:100%; min-height:0; }
+      .map-hint { left:9px; bottom:9px; max-width:205px; font-size:9px; }
+      .foot { flex-direction:column; }
+      .foot-right { text-align:left; white-space:normal; }
+    }
+
+    /* Readability and presentation refinements */
+    body, input, button { font-family: "Be Vietnam Pro", Arial, sans-serif; }
+    body { font-size: 15px; }
+    .brand-title { font-size: 14px; letter-spacing: .10em; }
+    .brand-sub { font-size: 12px; }
+    .top-pill { font-size: 12px; }
+    .eyebrow { font-size: 12px; letter-spacing: .14em; }
+    .hero-copy { font-size: 15px; line-height: 1.85; }
+    .stat strong { font-size: 22px; }
+    .stat small { font-size: 12px; }
+    .section-title { font-size: 15px; }
+    .section-sub { font-size: 12px; }
+    .map-hint { font-size: 12px; max-width: 310px; line-height: 1.7; }
+    .map-legend { display:flex; flex-wrap:wrap; gap:9px 13px; margin-top:8px; color:#53665d; font-size:11px; }
+    .map-legend span { display:inline-flex; align-items:center; gap:6px; }
+    .legend-swatch { display:inline-block; width:10px; height:10px; border-radius:3px; }
+    .province-swatch { background:#b9d8c5; }
+    .city-swatch { background:#3183C8; }
+    .capital-swatch { background:#7745A8; }
+    .count-label, .search-box input { font-size:13px; }
+    .search-box input { height:46px; }
+    .filter { font-size:11px; padding:7px 12px; }
+    .province-item { padding:11px 10px; }
+    .province-name { font-size:13px; }
+    .province-type { font-size:11px; }
+    .detail { padding:20px; }
+    .tag { font-size:10px; }
+    .detail-code { font-size:10px; }
+    .detail h2 { font-family:"Be Vietnam Pro",Arial,sans-serif; font-size:25px; font-weight:800; letter-spacing:-.035em; }
+    .detail-region { font-size:12px; }
+    .detail-desc { font-size:13px; line-height:1.8; }
+    .detail-metric { padding:11px 12px; }
+    .detail-metric small { font-size:11px; }
+    .detail-metric strong { font-size:14px; line-height:1.5; }
+    .detail-section { margin-top:16px; }
+    .detail-section label { font-size:11px; letter-spacing:.08em; }
+    .detail-section p { font-size:13px; line-height:1.8; }
+    .landmark-chip { font-size:11px; padding:6px 9px; }
+    .culture-heading { margin-top:19px; padding-top:16px; border-top:1px solid #e8eee9; color:#174f3d; font-size:15px; font-weight:800; }
+    .culture-section { display:grid; grid-template-columns:34px 1fr; gap:10px; margin-top:13px; padding:12px; border:1px solid #e7eee8; border-radius:13px; background:#fff; }
+    .culture-icon { width:32px; height:32px; display:grid; place-items:center; border-radius:10px; background:#edf6f0; color:#176b56; font-size:17px; }
+    .culture-section h3 { margin:0 0 5px; color:#27463a; font-size:13px; }
+    .culture-section p { margin:0; color:#596b62; font-size:12px; line-height:1.75; }
+    .culture-note { margin-top:12px; color:#89958e; font-size:10px; line-height:1.65; }
+    .festival-detail-card { margin-top:12px; padding:14px; border:1px solid #dfeae2; border-radius:14px; background:linear-gradient(180deg,#f7fbf8 0%,#ffffff 100%); }
+    .festival-detail-title { display:flex; flex-direction:column; gap:5px; margin-bottom:12px; }
+    .festival-detail-title span { color:#6c8c7b; font-size:9px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; }
+    .festival-detail-title strong { color:#174f3d; font-size:14px; line-height:1.45; }
+    .festival-detail-row { padding:10px 0; border-top:1px solid #e8efe9; }
+    .festival-detail-row:first-of-type { border-top:0; }
+    .festival-detail-row b { display:block; margin-bottom:5px; color:#355c4c; font-size:11px; }
+    .festival-detail-row p { margin:0; color:#53675d; font-size:11px; line-height:1.8; }
+    .festival-extra { margin-top:10px; padding:10px 11px; border-left:3px solid #d6a45a; border-radius:8px; background:#fff8ed; color:#725733; font-size:10px; line-height:1.7; }
+    .festival-sources { display:flex; flex-wrap:wrap; gap:7px; margin-top:11px; padding-top:10px; border-top:1px solid #e8efe9; }
+    .festival-sources a { color:#176b56; font-size:10px; font-weight:700; text-decoration:none; border-bottom:1px solid #c6ddce; }
+    .festival-sources a:hover { color:#0d4636; }
+
+    .province-photo-card { position:relative; overflow:hidden; margin:14px 0 15px; border:1px solid #e2ebe4; border-radius:15px; background:#eaf2ec; }
+    .province-photo-card img { display:block; width:100%; height:178px; object-fit:cover; background:#e7f0e9; }
+    .province-photo-card img[hidden] { display:none; }
+    .province-photo-label { position:absolute; left:0; right:0; bottom:30px; display:flex; flex-direction:column; gap:5px; padding:24px 14px 10px; color:#fff; background:linear-gradient(180deg,transparent,rgba(10,31,24,.78)); pointer-events:none; }
+    .province-photo-label[hidden] { display:none; }
+    .province-photo-label span { font-size:9px; font-weight:800; letter-spacing:.12em; opacity:.9; }
+    .province-photo-label strong { font-size:16px; line-height:1.3; text-shadow:0 1px 3px rgba(0,0,0,.35); }
+    .province-photo-fallback { min-height:150px; display:flex; flex-direction:column; justify-content:flex-end; gap:7px; padding:18px; color:#fff; background:radial-gradient(circle at 80% 15%,rgba(255,255,255,.35),transparent 26%),linear-gradient(135deg,#2d8066 0%,#78a98c 48%,#d6bd83 100%); }
+    .province-photo-fallback[hidden] { display:none; }
+    .province-photo-fallback span { font-size:9px; font-weight:800; letter-spacing:.13em; opacity:.85; }
+    .province-photo-fallback strong { font-size:19px; line-height:1.3; max-width:90%; }
+    .province-photo-credit { padding:7px 10px; color:#7d8e84; font-size:9px; line-height:1.5; background:#fbfdfb; }
+    .province-photo-credit a { color:#176b56; text-decoration:none; border-bottom:1px solid #c6ddcf; }
+    .province-photo-status { padding:7px 10px; color:#7d8e84; font-size:9px; line-height:1.5; }
+    .initial-state strong { font-size:13px; }
+    .initial-state span { font-size:11px; }
+    .empty-list { font-size:12px; }
+    .foot { font-size:11px; }
+    .foot-right { font-size:11px; }
+    .leaflet-tooltip.province-tooltip { font-size:13px; padding:8px 11px; }
+    .team-card { margin:4px 0 25px; padding:24px; border:1px solid #dfe9e1; border-radius:22px; background:linear-gradient(135deg,rgba(255,255,255,.97),rgba(239,247,240,.94)); box-shadow:var(--shadow); }
+    .team-heading { display:flex; align-items:center; gap:14px; }
+    .team-mark { display:grid; place-items:center; width:48px; height:48px; border-radius:15px; background:#176b56; color:#fff; font-size:23px; }
+    .team-eyebrow { color:#277458; font-size:10px; font-weight:800; letter-spacing:.16em; }
+    .team-heading h2 { margin:4px 0 3px; color:#1e3730; font-size:22px; font-weight:800; }
+    .team-heading p { margin:0; color:#718078; font-size:13px; line-height:1.6; }
+    .team-members { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-top:20px; }
+    .member { position:relative; display:flex; flex-direction:column; gap:5px; padding:16px; border:1px solid #e4ece5; border-radius:14px; background:#fff; }
+    .member-number { color:#9bb6a4; font-size:10px; font-weight:800; letter-spacing:.12em; }
+    .member strong { color:#203d31; font-size:16px; }
+    .member small { color:#7b8981; font-size:11px; }
+    .teacher-line { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:13px; padding:13px 15px; border-radius:12px; background:#eaf3ed; color:#456454; font-size:12px; }
+    .teacher-line strong { color:#174f3d; font-size:14px; }
+    @media (max-width:620px) {
+      .map-hint { max-width:calc(100% - 18px); font-size:10px; }
+      .map-legend { font-size:9px; gap:7px 10px; }
+      .team-card { padding:17px; border-radius:17px; }
+      .team-members { grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
+      .member { padding:11px 9px; }
+      .member strong { font-size:13px; }
+      .member small { font-size:9px; }
+      .team-heading h2 { font-size:18px; }
+      .team-heading p { font-size:11px; }
+      .teacher-line { align-items:flex-start; flex-direction:column; gap:4px; }
+      .detail h2 { font-size:22px; }
+      .culture-section p { font-size:11px; }
+      .detail-list-chips { grid-template-columns:1fr; max-height:220px; }
+      .detail-list-chips button { font-size:10px; }
+    }
+
+  
+    .archipelago-label {
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      min-width:118px; padding:8px 12px; border:2px solid #fff; border-radius:13px;
+      color:#fff; font-family:"Be Vietnam Pro",sans-serif; font-size:12px; font-weight:800;
+      line-height:1.2; text-align:center; box-shadow:0 5px 18px rgba(26,55,49,.25);
+      white-space:nowrap; transform:translateZ(0);
+    }
+    .archipelago-label small { margin-top:4px; font-size:9px; font-weight:600; opacity:.95; }
+    .archipelago-label.hs { background:#b8792b; }
+    .archipelago-label.ts { background:#167b69; }
+    .marine-tooltip { border:0; border-radius:8px; padding:6px 9px; background:#173d35; color:#fff; font-size:11px; font-weight:700; box-shadow:0 5px 16px rgba(0,0,0,.18); }
+    .marine-tooltip:before { border-top-color:#173d35; }
+    .marine-popup { font-family:"Be Vietnam Pro",sans-serif; min-width:170px; }
+    .marine-popup strong { color:#173d35; font-size:13px; }
+    .marine-popup small { color:#65756d; line-height:1.5; }
+    .marine-back {
+      display:inline-flex; align-items:center; gap:7px; margin-top:15px; padding:9px 12px;
+      border:1px solid #dce9e0; border-radius:10px; background:#f4faf6; color:#176b56;
+      font:700 12px "Be Vietnam Pro",sans-serif; cursor:pointer;
+    }
+    .marine-back:hover { background:#eaf5ee; border-color:#b8d8c5; }
+    .marine-note { color:#819088; font-size:10px; line-height:1.65; margin-top:12px; }
+    .detail-list-chips { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; margin-top:7px; max-height:260px; overflow:auto; padding:2px 5px 2px 0; }
+    .detail-list-chips button { min-width:0; text-align:left; padding:7px 8px; border-radius:8px; border:1px solid #e4ece6; background:#f6faf7; color:#486157; font:500 10px/1.45 "Be Vietnam Pro",sans-serif; cursor:pointer; }
+    .detail-list-chips button:hover { border-color:#9fc9af; background:#eaf5ee; color:#174f3d; }
+    .map-legend .island-swatch { background:#bf873d; border-radius:50%; }
+    .map-legend .island-swatch.ts { background:#16816d; }
+    @media (max-width: 620px) {
+      .archipelago-label { min-width:96px; padding:7px 9px; font-size:10px; }
+      .archipelago-label small { font-size:8px; }
+      .marine-tooltip { font-size:10px; }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">V</div>
+        <div>
+          <div class="brand-title">Việt Nam · Bản đồ số</div>
+          <div class="brand-sub">Khám phá địa lý và hành chính</div>
+        </div>
+      </div>
+      <div class="top-pill"><span class="pulse"></span> DỮ LIỆU SAU SẮP XẾP 2025</div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="eyebrow">Atlas Việt Nam · 2025—2026</div>
+        <h1>Chạm vào <span>từng miền đất</span></h1>
+        <p class="hero-copy">Khám phá bản đồ hành chính Việt Nam sau sắp xếp. Di chuột lên một địa giới để xem tên tỉnh, thành; nhấn chọn để mở hồ sơ gồm lịch sử hình thành, diện tích, quy mô dân số và những nét nổi bật.</p>
+        <div class="stats" aria-label="Tổng số đơn vị hành chính cấp tỉnh">
+          <div class="stat"><div class="stat-icon">⌖</div><div><strong>34</strong><small>Đơn vị cấp tỉnh</small></div></div>
+          <div class="stat"><div class="stat-icon">◇</div><div><strong>28</strong><small>Tỉnh</small></div></div>
+          <div class="stat"><div class="stat-icon">▤</div><div><strong>06</strong><small>Thành phố</small></div></div>
+        </div>
+      </section>
+
+      <section class="workspace" aria-label="Bản đồ tương tác và thông tin tỉnh thành">
+        <div class="map-card">
+          <div class="map-head">
+            <div>
+              <div class="section-title">Bản đồ hành chính Việt Nam</div>
+              <div class="section-sub">34 tỉnh, thành · Điểm đảo Hoàng Sa và Trường Sa tích hợp cùng bản đồ</div>
+            </div>
+            <div class="map-actions">
+              <button class="icon-btn" id="resetMap" title="Xem toàn quốc" aria-label="Xem toàn quốc">⌖</button>
+              <button class="icon-btn" id="zoomIn" title="Phóng to" aria-label="Phóng to">＋</button>
+              <button class="icon-btn" id="zoomOut" title="Thu nhỏ" aria-label="Thu nhỏ">－</button>
+            </div>
+          </div>
+          <div class="map-wrap">
+            <div id="map" role="application" aria-label="Bản đồ tương tác 34 tỉnh thành Việt Nam"></div>
+            <div class="map-hint"><b>Gợi ý:</b> Di chuột để xem tên tỉnh, thành hoặc đảo; nhấn để mở thông tin. Nhấn nhãn Hoàng Sa / Trường Sa để phóng gần các cụm đảo.<div class="map-legend"><span><i class="legend-swatch province-swatch"></i>Tỉnh</span><span><i class="legend-swatch city-swatch"></i>Thành phố</span><span><i class="legend-swatch capital-swatch"></i>Thủ đô Hà Nội</span><span><i class="legend-swatch island-swatch"></i>Hoàng Sa</span><span><i class="legend-swatch island-swatch ts"></i>Trường Sa</span></div></div>
+            <div class="map-loader" id="mapLoader">
+              <div class="spinner"></div>
+              <div class="loader-main">Đang tải bản đồ Việt Nam…</div>
+              <div class="loader-sub">Đang kết nối dữ liệu ranh giới hành chính 34 tỉnh, thành phố.</div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="side-card">
+          <div class="side-top">
+            <div class="side-topline">
+              <div class="section-title">Danh sách địa phương</div>
+              <div class="count-label"><b id="visibleCount">34</b> / 34</div>
+            </div>
+            <div class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Tìm tỉnh hoặc thành phố…" autocomplete="off" /></div>
+            <div class="filter-row" aria-label="Lọc loại đơn vị">
+              <button class="filter active" data-filter="all">Tất cả</button>
+              <button class="filter" data-filter="Tỉnh">28 tỉnh</button>
+              <button class="filter" data-filter="Thành phố">6 thành phố</button>
+            </div>
+          </div>
+          <div class="province-list" id="provinceList" aria-live="polite"></div>
+          <div class="detail" id="detailPanel">
+            <div class="initial-state">
+              <div class="pin">⌖</div>
+              <strong>Chọn một tỉnh, thành phố</strong>
+              <span>Nhấn vào tỉnh, thành phố hoặc dấu mốc đảo trên bản đồ. Nhấn nhãn Hoàng Sa và Trường Sa để xem các địa danh bên trong từng quần đảo.</span>
+            </div>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+
+
+    <section class="team-card" aria-label="Thông tin nhóm thực hiện">
+      <div class="team-heading">
+        <span class="team-mark">✦</span>
+        <div>
+          <div class="team-eyebrow">DỰ ÁN HỌC TẬP</div>
+          <h2>Những người thực hiện</h2>
+          <p>Cùng tìm hiểu, lưu giữ và lan tỏa vẻ đẹp văn hóa Việt Nam.</p>
+        </div>
+      </div>
+      <div class="team-members">
+        <div class="member"><span class="member-number">01</span><strong>Ngọc Hân</strong><small>Thành viên thực hiện</small></div>
+        <div class="member"><span class="member-number">02</span><strong>Kim Yến</strong><small>Thành viên thực hiện</small></div>
+        <div class="member"><span class="member-number">03</span><strong>Bảo Ngọc</strong><small>Thành viên thực hiện</small></div>
+        <div class="member"><span class="member-number">04</span><strong>Ngọc Thúy</strong><small>Thành viên đóng góp</small></div>
+      </div>
+      <div class="teacher-line"><span>Giáo viên hỗ trợ</span><strong>Trần Vương Mỹ</strong></div>
+    </section>
+
+    <footer class="foot">
+      <div>
+        <div><b>Nguồn thông tin hành chính:</b> <a href="https://xaydungchinhsach.chinhphu.vn/chi-tiet-34-don-vi-hanh-chinh-cap-tinh-tu-12-6-2025-119250612141845533.htm" target="_blank" rel="noopener">Báo Điện tử Chính phủ</a> · Nghị quyết 202/2025/QH15.</div>
+        <div><b>Nguồn dữ liệu ranh giới:</b> <a href="https://github.com/nguyenduy1133/Free-GIS-Data" target="_blank" rel="noopener">Vietnam GIS Data</a> (GeoJSON 34 tỉnh, thành sau 2025).</div>
+        <div><b>Tư liệu văn hóa tham khảo:</b> <a href="https://dsvh.gov.vn/di-san-van-hoa-phi-vat-the-dai-dien-cua-nhan-loai-1755" target="_blank" rel="noopener">Cục Di sản văn hóa</a> · <a href="https://vietnam.travel/vi/things-to-do/top-10-festivals-holidays-vietnam" target="_blank" rel="noopener">Vietnam Tourism</a> · <a href="https://vietnam.travel/vi/things-to-do/food" target="_blank" rel="noopener">Ẩm thực Việt Nam</a>.</div>
+        <div><b>Ảnh minh họa địa phương:</b> Tìm theo địa danh trên Wikimedia Commons; liên kết nguồn và thông tin giấy phép được hiển thị bên dưới ảnh khi có kết quả.</div>
+        <div><b>Tư liệu tọa độ biển đảo:</b> <a href="https://www.mae.gov.vn/noidung/Lists/VBQPPL/Attachments/514/1_DanhMuc_TT_DiaDanh_BanHanh.pdf" target="_blank" rel="noopener">Danh mục địa danh các đảo, đá, bãi cạn, bãi ngầm – phụ lục Thông tư 33/2024/TT-BTNMT</a>.</div>
+        <div><b>Tư liệu bổ sung Hoàng Sa:</b> <a href="https://danang.gov.vn/vi/web/dng/w/ubnd-huyen-hoang-sa-i" target="_blank" rel="noopener">Cổng thông tin thành phố Đà Nẵng – thông tin quần đảo Hoàng Sa</a>.</div>
+        <div class="marine-note">Bản đồ đánh dấu 49 địa danh thuộc phần Hoàng Sa và 132 địa danh thuộc phần Trường Sa có tên và tọa độ trong danh mục kèm Thông tư 33/2024/TT-BTNMT. Đây gồm đảo, đá, cụm địa lý, bãi cạn và bãi ngầm, không đồng nghĩa mọi điểm đều là đảo nổi. Tọa độ VN-2000 được chuyển sang độ thập phân để hiển thị trên nền bản đồ web; bản đồ có tính chất giới thiệu, không thay thế hải đồ hàng hải hoặc tài liệu xác định ranh giới pháp lý.</div>
+      </div>
+      <div class="foot-right">Nhóm thực hiện: Ngọc Hân · Kim Yến · Bảo Ngọc · Ngọc Thúy<br>Giáo viên hỗ trợ: Trần Vương Mỹ</div>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script>
+    // Thông tin hành chính được đối chiếu với trang Báo Điện tử Chính phủ.
+    // Diện tích và quy mô dân số dưới đây là số liệu được nêu trong bài viết về Nghị quyết 202/2025/QH15.
+    const provinces = [
+      {name:"An Giang", type:"Tỉnh", region:"Tây Nam Bộ", merged:["Kiên Giang","An Giang"], area:9888.91, population:4952238, highlights:["Châu Đốc","Núi Cấm","Phú Quốc","Hà Tiên"], note:"Không gian sông nước, vùng biên giới Tây Nam và biển đảo; kết nối di sản văn hóa An Giang với vùng biển Kiên Giang."},
+      {name:"Bắc Ninh", type:"Tỉnh", region:"Đồng bằng sông Hồng", merged:["Bắc Giang","Bắc Ninh"], area:4718.6, population:3619433, highlights:["Dân ca Quan họ","Chùa Vĩnh Nghiêm","Tây Yên Tử"], note:"Vùng đất Kinh Bắc giàu truyền thống văn hóa, nổi tiếng với dân ca Quan họ và các di tích lịch sử - tâm linh."},
+      {name:"Cà Mau", type:"Tỉnh", region:"Tây Nam Bộ", merged:["Bạc Liêu","Cà Mau"], area:7942.39, population:2606672, highlights:["Mũi Cà Mau","Rừng U Minh Hạ","Nhà Công tử Bạc Liêu"], note:"Vùng cực Nam Tổ quốc, nổi bật với hệ sinh thái rừng ngập mặn, biển và văn hóa đờn ca tài tử."},
+      {name:"Cao Bằng", type:"Tỉnh", region:"Đông Bắc Bộ", merged:null, highlights:["Thác Bản Giốc","Pác Bó","Công viên địa chất Non nước Cao Bằng"], note:"Địa phương giữ nguyên địa giới cấp tỉnh trong đợt sắp xếp năm 2025; nổi bật với cảnh quan núi đá vôi và các di tích lịch sử cách mạng."},
+      {name:"Cần Thơ", type:"Thành phố", region:"Tây Nam Bộ", merged:["Cần Thơ","Sóc Trăng","Hậu Giang"], area:6360.83, population:4199824, highlights:["Bến Ninh Kiều","Chợ nổi Cái Răng","Chùa Som Rông","Khu bảo tồn Lung Ngọc Hoàng"], note:"Trung tâm vùng Đồng bằng sông Cửu Long, kết hợp nét đô thị sông nước với văn hóa Kinh - Khmer - Hoa."},
+      {name:"Đà Nẵng", type:"Thành phố", region:"Duyên hải Nam Trung Bộ", merged:["Đà Nẵng","Quảng Nam"], area:11859.59, population:3065628, highlights:["Phố cổ Hội An","Thánh địa Mỹ Sơn","Bà Nà Hills","Bán đảo Sơn Trà"], note:"Không gian đô thị biển - núi - di sản, kết nối trung tâm Đà Nẵng với Hội An và các di sản xứ Quảng."},
+      {name:"Đắk Lắk", type:"Tỉnh", region:"Tây Nguyên – Nam Trung Bộ", merged:["Đắk Lắk","Phú Yên"], area:18096.40, population:3346853, highlights:["Buôn Đôn","Hồ Lắk","Gành Đá Đĩa","Vịnh Xuân Đài"], note:"Kết nối cao nguyên bazan với duyên hải Phú Yên, tạo nên không gian đa dạng về cảnh quan và văn hóa."},
+      {name:"Điện Biên", type:"Tỉnh", region:"Tây Bắc Bộ", merged:null, highlights:["Di tích Chiến trường Điện Biên Phủ","Đèo Pha Đin","Hồ Pá Khoang"], note:"Địa phương giữ nguyên địa giới cấp tỉnh; gắn với chiến thắng Điện Biên Phủ và bản sắc văn hóa các dân tộc vùng Tây Bắc."},
+      {name:"Đồng Nai", type:"Tỉnh", region:"Đông Nam Bộ", merged:["Đồng Nai","Bình Phước"], area:12737.18, population:4491408, highlights:["Vườn quốc gia Cát Tiên","Núi Bà Rá","Văn miếu Trấn Biên"], note:"Không gian công nghiệp - đô thị năng động, đồng thời có hệ sinh thái rừng và các di tích văn hóa lâu đời."},
+      {name:"Đồng Tháp", type:"Tỉnh", region:"Tây Nam Bộ", merged:["Đồng Tháp","Tiền Giang"], area:5938.64, population:4370046, highlights:["Vườn quốc gia Tràm Chim","Làng hoa Sa Đéc","Cù lao Thới Sơn"], note:"Vùng đất sen và miệt vườn, kết nối cảnh quan Đồng Tháp Mười với không gian sông Tiền."},
+      {name:"Gia Lai", type:"Tỉnh", region:"Tây Nguyên – Duyên hải Nam Trung Bộ", merged:["Gia Lai","Bình Định"], area:21576.53, population:3583693, highlights:["Biển Hồ","Tháp Đôi","Eo Gió","Không gian văn hóa cồng chiêng"], note:"Kết nối cao nguyên Pleiku với duyên hải Quy Nhơn, hội tụ cảnh quan rừng núi, biển và văn hóa cồng chiêng."},
+      {name:"Hà Nội", type:"Thành phố", region:"Đồng bằng sông Hồng", merged:null, highlights:["Hồ Hoàn Kiếm","Hoàng thành Thăng Long","Văn Miếu - Quốc Tử Giám"], note:"Thủ đô nước Cộng hòa xã hội chủ nghĩa Việt Nam; giữ nguyên địa giới cấp tỉnh trong đợt sắp xếp năm 2025."},
+      {name:"Hà Tĩnh", type:"Tỉnh", region:"Bắc Trung Bộ", merged:null, highlights:["Khu di tích Nguyễn Du","Ngã ba Đồng Lộc","Hồ Kẻ Gỗ"], note:"Địa phương giữ nguyên địa giới cấp tỉnh; nổi bật với truyền thống hiếu học, văn hóa Hồng Lam và các di tích lịch sử."},
+      {name:"Hải Phòng", type:"Thành phố", region:"Đồng bằng sông Hồng", merged:["Hải Phòng","Hải Dương"], area:3194.72, population:4664124, highlights:["Quần đảo Cát Bà","Đồ Sơn","Côn Sơn - Kiếp Bạc"], note:"Thành phố cảng và trung tâm kinh tế biển quan trọng, mở rộng không gian kết nối di sản Hải Dương với duyên hải Hải Phòng."},
+      {name:"Huế", type:"Thành phố", region:"Bắc Trung Bộ", merged:null, highlights:["Đại Nội Huế","Chùa Thiên Mụ","Lăng tẩm triều Nguyễn"], note:"Thành phố trực thuộc Trung ương, nổi bật với Quần thể di tích Cố đô Huế và giá trị văn hóa cung đình."},
+      {name:"Hưng Yên", type:"Tỉnh", region:"Đồng bằng sông Hồng", merged:["Hưng Yên","Thái Bình"], area:2514.81, population:3567943, highlights:["Phố Hiến","Chùa Keo","Làng nghề truyền thống"], note:"Vùng đồng bằng trù phú, kết nối di sản Phố Hiến với không gian văn hóa và nông nghiệp ven biển Thái Bình."},
+      {name:"Khánh Hòa", type:"Tỉnh", region:"Duyên hải Nam Trung Bộ", merged:["Khánh Hòa","Ninh Thuận"], area:8555.86, population:2243554, highlights:["Vịnh Nha Trang","Tháp Po Klong Garai","Vịnh Vĩnh Hy","Vịnh Cam Ranh"], note:"Không gian duyên hải giàu tiềm năng du lịch biển, kết nối văn hóa Chăm và các vịnh biển nổi tiếng."},
+      {name:"Lai Châu", type:"Tỉnh", region:"Tây Bắc Bộ", merged:null, highlights:["Đèo Ô Quy Hồ","Quần thể Pu Sam Cáp","Cao nguyên Sìn Hồ"], note:"Địa phương giữ nguyên địa giới cấp tỉnh; nổi bật với địa hình núi cao, cảnh quan hùng vĩ và sự đa dạng văn hóa dân tộc."},
+      {name:"Lâm Đồng", type:"Tỉnh", region:"Tây Nguyên – Duyên hải Nam Trung Bộ", merged:["Lâm Đồng","Đắk Nông","Bình Thuận"], area:24233.07, population:3872999, highlights:["Đà Lạt","Mũi Né","Công viên địa chất Đắk Nông","Tà Đùng"], note:"Tỉnh có không gian rộng lớn trải từ cao nguyên đến duyên hải, với thế mạnh về nông nghiệp, du lịch và cảnh quan thiên nhiên."},
+      {name:"Lạng Sơn", type:"Tỉnh", region:"Đông Bắc Bộ", merged:null, highlights:["Mẫu Sơn","Động Tam Thanh","Ải Chi Lăng"], note:"Địa phương giữ nguyên địa giới cấp tỉnh; là cửa ngõ giao thương biên giới và vùng đất có nhiều di tích lịch sử."},
+      {name:"Lào Cai", type:"Tỉnh", region:"Tây Bắc Bộ", merged:["Lào Cai","Yên Bái"], area:13256.92, population:1778785, highlights:["Sa Pa","Đỉnh Fansipan","Ruộng bậc thang Mù Cang Chải","Hồ Thác Bà"], note:"Vùng núi Tây Bắc với cảnh quan ruộng bậc thang, đỉnh núi cao và bản sắc văn hóa đa dạng."},
+      {name:"Nghệ An", type:"Tỉnh", region:"Bắc Trung Bộ", merged:null, highlights:["Khu di tích Kim Liên","Vườn quốc gia Pù Mát","Biển Cửa Lò"], note:"Địa phương giữ nguyên địa giới cấp tỉnh; có diện tích rộng, giàu truyền thống lịch sử, văn hóa và sinh thái."},
+      {name:"Ninh Bình", type:"Tỉnh", region:"Đồng bằng sông Hồng", merged:["Ninh Bình","Hà Nam","Nam Định"], area:3942.62, population:4412264, highlights:["Quần thể danh thắng Tràng An","Tam Cốc - Bích Động","Phủ Dầy","Nhà thờ Phát Diệm"], note:"Không gian di sản - đồng bằng - ven biển, kết nối các giá trị nổi bật của Hà Nam, Nam Định và Ninh Bình."},
+      {name:"Phú Thọ", type:"Tỉnh", region:"Trung du và miền núi phía Bắc", merged:["Phú Thọ","Vĩnh Phúc","Hòa Bình"], area:9361.38, population:4022638, highlights:["Đền Hùng","Tam Đảo","Thung Nai","Mai Châu"], note:"Vùng đất cội nguồn dân tộc, kết nối trung du, miền núi và các không gian du lịch sinh thái."},
+      {name:"Quảng Ngãi", type:"Tỉnh", region:"Duyên hải Nam Trung Bộ – Tây Nguyên", merged:["Quảng Ngãi","Kon Tum"], area:14832.55, population:2161755, highlights:["Đảo Lý Sơn","Măng Đen","Nhà rông Tây Nguyên","Chứng tích Sơn Mỹ"], note:"Kết nối duyên hải miền Trung với cao nguyên Kon Tum, đa dạng về địa hình, văn hóa và sinh thái."},
+      {name:"Quảng Ninh", type:"Tỉnh", region:"Đông Bắc Bộ", merged:null, highlights:["Vịnh Hạ Long","Yên Tử","Vân Đồn","Cô Tô"], note:"Địa phương giữ nguyên địa giới cấp tỉnh; có thế mạnh về kinh tế biển, du lịch di sản và cửa khẩu."},
+      {name:"Quảng Trị", type:"Tỉnh", region:"Bắc Trung Bộ", merged:["Quảng Trị","Quảng Bình"], area:12700, population:1870845, highlights:["Phong Nha - Kẻ Bàng","Địa đạo Vịnh Mốc","Thành cổ Quảng Trị","Hang Sơn Đoòng"], note:"Không gian Bắc Trung Bộ giàu giá trị lịch sử, kết nối hệ thống di sản thiên nhiên và ký ức chiến tranh."},
+      {name:"Sơn La", type:"Tỉnh", region:"Tây Bắc Bộ", merged:null, highlights:["Cao nguyên Mộc Châu","Nhà tù Sơn La","Thủy điện Sơn La"], note:"Địa phương giữ nguyên địa giới cấp tỉnh; nổi bật với cao nguyên, nông nghiệp ôn đới và văn hóa các dân tộc vùng cao."},
+      {name:"Tây Ninh", type:"Tỉnh", region:"Đông Nam Bộ", merged:["Tây Ninh","Long An"], area:8536.44, population:3254170, highlights:["Núi Bà Đen","Tòa thánh Cao Đài","Làng nổi Tân Lập","Cửa khẩu Mộc Bài"], note:"Kết nối vùng cửa ngõ Tây Bắc TP.HCM với không gian văn hóa, nông nghiệp và thương mại biên giới."},
+      {name:"Thái Nguyên", type:"Tỉnh", region:"Trung du và miền núi phía Bắc", merged:["Thái Nguyên","Bắc Kạn"], area:8375.21, population:1799489, highlights:["Hồ Núi Cốc","ATK Định Hóa","Hồ Ba Bể"], note:"Không gian trung du - miền núi với truyền thống cách mạng, văn hóa trà và cảnh quan hồ, rừng đặc sắc."},
+      {name:"Thanh Hóa", type:"Tỉnh", region:"Bắc Trung Bộ", merged:null, highlights:["Thành nhà Hồ","Khu di tích Lam Kinh","Biển Sầm Sơn","Pù Luông"], note:"Địa phương giữ nguyên địa giới cấp tỉnh; là vùng giao thoa giữa Bắc Bộ và Bắc Trung Bộ, giàu di sản lịch sử."},
+      {name:"Thành phố Hồ Chí Minh", type:"Thành phố", region:"Đông Nam Bộ", merged:["TP. Hồ Chí Minh","Bình Dương","Bà Rịa - Vũng Tàu"], area:6772.59, population:14002598, highlights:["Dinh Độc Lập","Địa đạo Củ Chi","Vũng Tàu","Khu công nghiệp Bình Dương"], note:"Đô thị lớn, trung tâm kinh tế - tài chính; mở rộng không gian kết nối đô thị, công nghiệp và kinh tế biển."},
+      {name:"Tuyên Quang", type:"Tỉnh", region:"Đông Bắc Bộ", merged:["Tuyên Quang","Hà Giang"], area:13795.50, population:1865270, highlights:["Cao nguyên đá Đồng Văn","Na Hang - Lâm Bình","Cột cờ Lũng Cú"], note:"Vùng núi phía Bắc với cao nguyên đá, cảnh quan karst và nhiều giá trị văn hóa của các dân tộc."},
+      {name:"Vĩnh Long", type:"Tỉnh", region:"Tây Nam Bộ", merged:["Vĩnh Long","Bến Tre","Trà Vinh"], area:6296.20, population:4257581, highlights:["Cù lao An Bình","Ao Bà Om","Biển Ba Động","Vườn dừa Bến Tre"], note:"Vùng cù lao và miệt vườn giữa sông Tiền - sông Hậu, nổi bật với văn hóa Khmer và kinh tế nông nghiệp."}
+    ];
+
+
+    // Nội dung văn hóa là các ví dụ tiêu biểu của những vùng hợp thành tỉnh/thành mới.
+    // Mỗi tỉnh có thể còn nhiều lễ hội, món ăn và di tích khác chưa liệt kê ở đây.
+    const cultureData = {"An Giang":{"festival":"Lễ hội Vía Bà Chúa Xứ Núi Sam; lễ hội đua bò Bảy Núi","food":"Bún cá, mắm Châu Đốc, đường thốt nốt, cá khô","history":"Vùng đất gắn với văn hóa Óc Eo – Phù Nam; Châu Đốc là điểm giao thoa văn hóa Kinh, Khmer, Chăm và Hoa. Khu vực Hà Tiên – Kiên Giang có lịch sử thương cảng và vùng biển đảo lâu đời."},"Bắc Ninh":{"festival":"Hội Lim; hội chùa Vĩnh Nghiêm; sinh hoạt hát quan họ","food":"Bánh phu thê Đình Bảng, nem Bùi, bánh tẻ làng Chờ","history":"Không gian Kinh Bắc xưa, gắn với văn hóa quan họ, hệ thống đình chùa cổ và dấu tích các triều đại Lý – Trần."},"Cà Mau":{"festival":"Lễ hội Nghinh Ông Sông Đốc; các hoạt động văn hóa Đờn ca tài tử","food":"Cua Cà Mau, ba khía Rạch Gốc, cá thòi lòi, lẩu mắm","history":"Vùng đất cực Nam, gắn với quá trình khai phá đất phương Nam, lịch sử kháng chiến ở rừng U Minh và văn hóa sông nước Bạc Liêu – Cà Mau."},"Cao Bằng":{"festival":"Lễ hội Lồng Tồng; lễ hội thác Bản Giốc","food":"Vịt quay 7 vị, bánh khảo, hạt dẻ Trùng Khánh","history":"Pác Bó là địa danh gắn với sự kiện Nguyễn Ái Quốc trở về nước năm 1941; Cao Bằng còn lưu dấu nhiều di tích cách mạng và văn hóa Tày – Nùng."},"Cần Thơ":{"festival":"Lễ hội Óoc Om Bóc – đua ghe Ngo ở Sóc Trăng; Ngày hội Bánh dân gian Nam Bộ","food":"Bánh tét lá cẩm, bánh cống, bún nước lèo, trái cây miệt vườn","history":"Cần Thơ từng được biết đến là Tây Đô; vùng hợp nhất còn có di sản văn hóa Khmer ở Sóc Trăng và dấu tích căn cứ kháng chiến tại Hậu Giang."},"Đà Nẵng":{"festival":"Lễ hội Quán Thế Âm; lễ hội Cầu ngư; đêm phố cổ Hội An","food":"Mì Quảng, cao lầu, bánh tráng cuốn thịt heo, bê thui Cầu Mống","history":"Không gian gồm đô thị Đà Nẵng và xứ Quảng, gắn với văn hóa Chăm, thương cảng Hội An và Thánh địa Mỹ Sơn."},"Đắk Lắk":{"festival":"Lễ hội Cà phê Buôn Ma Thuột; lễ cúng bến nước của cộng đồng Tây Nguyên","food":"Cà phê Buôn Ma Thuột, gà nướng cơm lam, mắt cá ngừ đại dương, bánh hỏi lòng heo","history":"Kết nối không gian văn hóa Ê Đê ở cao nguyên với di sản duyên hải Phú Yên; vùng đất có dấu tích văn hóa Tây Nguyên và lịch sử mở cõi ven biển."},"Điện Biên":{"festival":"Lễ hội Hoa Ban; Tết Xíp Xí; các sinh hoạt Then của người Thái","food":"Pa pỉnh tộp, gà nướng mắc khén, xôi nếp nương","history":"Chiến thắng Điện Biên Phủ năm 1954 là dấu mốc lịch sử quan trọng; khu di tích chiến trường ghi dấu cuộc kháng chiến chống thực dân Pháp."},"Đồng Nai":{"festival":"Lễ hội Sayangva của người Chơ Ro; lễ hội Kỳ Yên tại các đình làng","food":"Bưởi Tân Triều, hạt điều Bình Phước, gỏi cá Biên Hòa","history":"Vùng đất có lịch sử khai phá lâu đời ở Nam Bộ; Văn miếu Trấn Biên là một dấu tích văn hóa – giáo dục tiêu biểu."},"Đồng Tháp":{"festival":"Lễ hội Gò Tháp; lễ hội vía Bà Chúa Xứ Gò Tháp","food":"Nem Lai Vung, xoài Cao Lãnh, hủ tiếu Mỹ Tho, bánh phồng tôm Sa Giang","history":"Không gian Đồng Tháp Mười và sông Tiền gắn với văn hóa Óc Eo, quá trình khai hoang và nhiều di tích lịch sử Nam Bộ."},"Gia Lai":{"festival":"Lễ hội Đống Đa – Tây Sơn; sinh hoạt văn hóa cồng chiêng và lễ mừng lúa mới","food":"Phở khô Gia Lai, bò một nắng Krông Pa, bánh ít lá gai","history":"Vùng hợp nhất nối cao nguyên Pleiku với Bình Định – quê hương phong trào Tây Sơn; lưu giữ di sản văn hóa Bahnar, Jrai và võ cổ truyền Bình Định."},"Hà Nội":{"festival":"Lễ hội Gióng; lễ hội chùa Hương; lễ hội Cổ Loa","food":"Phở Hà Nội, bún chả, cốm làng Vòng, chả cá","history":"Thăng Long được chọn làm kinh đô năm 1010 dưới triều Lý; Hà Nội là Thủ đô và trung tâm chính trị – văn hóa của cả nước."},"Hà Tĩnh":{"festival":"Lễ hội Hải Thượng Lãn Ông; lễ giỗ và tưởng niệm các danh nhân địa phương","food":"Kẹo cu đơ, ram bánh mướt, bánh bèo Hà Tĩnh","history":"Quê hương Đại thi hào Nguyễn Du; Ngã ba Đồng Lộc là địa chỉ đỏ gắn với lịch sử kháng chiến chống Mỹ."},"Hải Phòng":{"festival":"Lễ hội chọi trâu Đồ Sơn; Lễ hội Hoa Phượng Đỏ; hội Côn Sơn – Kiếp Bạc","food":"Bánh đa cua, nem cua bể, bánh đậu xanh Hải Dương","history":"Thành phố cảng có vị trí quan trọng trong lịch sử giao thương và kháng chiến; vùng Hải Dương bổ sung hệ thống di tích Côn Sơn – Kiếp Bạc."},"Huế":{"festival":"Lễ hội Điện Huệ Nam (Điện Hòn Chén); Festival Huế; hội vật làng Sình","food":"Bún bò Huế, cơm hến, bánh bèo – nậm – lọc, mè xửng","history":"Huế từng là kinh đô triều Nguyễn (1802–1945); Quần thể di tích Cố đô Huế được UNESCO ghi danh là Di sản văn hóa thế giới."},"Hưng Yên":{"festival":"Lễ hội Chử Đồng Tử – Tiên Dung; hội chùa Keo; lễ hội đền Đồng Bằng","food":"Nhãn lồng Hưng Yên, bánh cáy, canh cá Quỳnh Côi","history":"Phố Hiến từng là thương cảng sầm uất; vùng Thái Bình có truyền thống văn hóa lúa nước và hệ thống di tích đền chùa lâu đời."},"Khánh Hòa":{"festival":"Lễ hội Tháp Bà Ponagar; lễ hội Cầu ngư; lễ hội Katê của người Chăm","food":"Yến sào, nem nướng Ninh Hòa, nho và táo Ninh Thuận, bánh căn","history":"Vùng đất có dấu tích vương quốc Champa, nổi bật với quần thể tháp Po Nagar và các di tích văn hóa Chăm ở Ninh Thuận."},"Lai Châu":{"festival":"Lễ hội Then Kin Pang; Tết Xíp Xí; lễ hội Gầu Tào","food":"Xôi tím, thịt trâu gác bếp, bánh khẩu xén","history":"Vùng núi Tây Bắc là nơi sinh sống lâu đời của nhiều dân tộc như Thái, Mông, Dao; các tuyến giao thương vùng cao đã hình thành bản sắc văn hóa đa dạng."},"Lâm Đồng":{"festival":"Lễ hội Katê của người Chăm; Festival Hoa Đà Lạt; lễ hội Dinh Thầy Thím","food":"Atisô Đà Lạt, cà phê, thanh long Bình Thuận, lẩu thả Phan Thiết","history":"Không gian mới kết nối cao nguyên Đà Lạt – Đắk Nông với vùng biển Bình Thuận; lưu dấu văn hóa bản địa Tây Nguyên và văn hóa Chăm."},"Lạng Sơn":{"festival":"Lễ hội đền Kỳ Cùng – Tả Phủ; lễ hội Lồng Tồng","food":"Vịt quay lá mắc mật, phở chua, na Chi Lăng","history":"Ải Chi Lăng là địa danh gắn với nhiều chiến công chống ngoại xâm; Lạng Sơn có truyền thống giao thương qua cửa khẩu phía Bắc."},"Lào Cai":{"festival":"Lễ hội Gầu Tào; lễ hội Roóng Poọc; các phiên chợ vùng cao","food":"Thắng cố, cá hồi Sa Pa, cốm Tú Lệ, xôi ngũ sắc","history":"Vùng núi Tây Bắc gắn với lịch sử giao thương biên giới, văn hóa các dân tộc và những địa danh như Sa Pa, Mù Cang Chải."},"Nghệ An":{"festival":"Lễ hội Làng Sen; lễ hội đền Cờn; sinh hoạt dân ca ví, giặm","food":"Cháo lươn, nhút Thanh Chương, tương Nam Đàn, cam Vinh","history":"Quê hương Chủ tịch Hồ Chí Minh tại Kim Liên; vùng đất giàu truyền thống hiếu học, cách mạng và văn hóa xứ Nghệ."},"Ninh Bình":{"festival":"Lễ hội Hoa Lư; lễ hội Phủ Dầy; lễ hội đền Trần","food":"Dê núi, cơm cháy Ninh Bình, phở bò Nam Định, cá kho làng Vũ Đại","history":"Hoa Lư từng là kinh đô của nhà Đinh và Tiền Lê; vùng hợp nhất có nhiều di sản lịch sử, tín ngưỡng và kiến trúc tôn giáo."},"Phú Thọ":{"festival":"Giỗ Tổ Hùng Vương; lễ hội hát Xoan; lễ hội Đền Mẫu Âu Cơ","food":"Thịt chua Thanh Sơn, bánh tai, cá sông Đà, cơm lam","history":"Đất Tổ gắn với truyền thuyết các Vua Hùng và nhà nước Văn Lang; vùng Hòa Bình – Vĩnh Phúc bổ sung di sản văn hóa Mường và không gian Tam Đảo."},"Quảng Ngãi":{"festival":"Lễ khao lề thế lính Hoàng Sa; lễ hội Nghinh Ông; lễ hội truyền thống ở Tây Nguyên","food":"Tỏi Lý Sơn, don sông Trà, cá bống sông Trà, gỏi lá Kon Tum","history":"Lý Sơn gắn với đội Hoàng Sa kiêm quản Bắc Hải; vùng Kon Tum lưu giữ nhiều giá trị văn hóa Bahnar, Xơ Đăng và di sản Sa Huỳnh."},"Quảng Ninh":{"festival":"Lễ hội Yên Tử; Carnaval Hạ Long; hội đình Trà Cổ","food":"Chả mực Hạ Long, sá sùng, gà Tiên Yên, bánh gật gù","history":"Vùng mỏ có truyền thống công nhân và lịch sử cách mạng; Yên Tử gắn với Phật giáo Trúc Lâm, vịnh Hạ Long là di sản thiên nhiên thế giới."},"Quảng Trị":{"festival":"Lễ hội Thống nhất non sông; lễ hội La Vang; lễ hội đua thuyền truyền thống","food":"Cháo canh, bánh bột lọc, khoai deo, bánh khoái","history":"Địa danh gắn với giới tuyến 17, Thành cổ Quảng Trị và nhiều di tích chiến tranh; Phong Nha – Kẻ Bàng là di sản thiên nhiên thế giới."},"Sơn La":{"festival":"Lễ hội Hết Chá; Xên bản – Xên mường; lễ hội Hoa Ban","food":"Bê chao Mộc Châu, cá suối nướng, sữa và chè Mộc Châu","history":"Nhà tù Sơn La là di tích lịch sử cách mạng; vùng cao nguyên Mộc Châu và các cộng đồng Thái, Mông tạo nên bản sắc Tây Bắc."},"Tây Ninh":{"festival":"Hội Xuân núi Bà Đen; lễ vía Đức Chí Tôn của đạo Cao Đài; lễ hội làm Chay Tầm Vu","food":"Bánh tráng phơi sương Trảng Bàng, muối tôm, lẩu mắm, thanh long","history":"Tòa Thánh Cao Đài là công trình tôn giáo đặc sắc; vùng Long An – Tây Ninh có nhiều di tích gắn với lịch sử khai phá và kháng chiến Nam Bộ."},"Thái Nguyên":{"festival":"Lễ hội Lồng Tồng; lễ hội chùa Hang; các hoạt động văn hóa trà","food":"Chè Tân Cương, bánh chưng Bờ Đậu, miến dong, cá hồ Ba Bể","history":"ATK Định Hóa là căn cứ địa cách mạng quan trọng; vùng Bắc Kạn có hồ Ba Bể và những giá trị văn hóa miền núi."},"Thanh Hóa":{"festival":"Lễ hội Lam Kinh; lễ hội Bà Triệu; lễ hội đền Sòng","food":"Nem chua Thanh Hóa, bánh gai Tứ Trụ, chè lam Phủ Quảng","history":"Thanh Hóa gắn với cuộc khởi nghĩa Lam Sơn và triều Hậu Lê; Thành nhà Hồ là Di sản văn hóa thế giới."},"Thành phố Hồ Chí Minh":{"festival":"Lễ hội Nguyên Tiêu ở khu Chợ Lớn; lễ hội Nghinh Ông Cần Giờ","food":"Cơm tấm, bánh mì, hủ tiếu, bánh khọt Vũng Tàu","history":"Sài Gòn – Gia Định là trung tâm lịch sử, thương mại quan trọng ở Nam Bộ; không gian mới kết nối đô thị Bình Dương và vùng biển Bà Rịa – Vũng Tàu."},"Tuyên Quang":{"festival":"Lễ hội Thành Tuyên; lễ hội Lồng Tồng; lễ hội Gầu Tào","food":"Thắng cố, bánh tam giác mạch, chè Shan tuyết, thịt trâu gác bếp","history":"Tân Trào là căn cứ địa cách mạng và nơi diễn ra Quốc dân Đại hội tháng 8/1945; cao nguyên đá Đồng Văn giàu giá trị địa chất – văn hóa."},"Vĩnh Long":{"festival":"Lễ hội Nghinh Ông Nam Hải Bình Đại; lễ hội Ok Om Bok; các hoạt động văn hóa Dừa","food":"Kẹo dừa Bến Tre, bánh tét Trà Cuôn, bưởi Năm Roi, cam sành","history":"Vùng cù lao sông Tiền – sông Hậu có lịch sử khai phá Nam Bộ lâu đời, lưu giữ văn hóa Khmer và hệ thống làng nghề miệt vườn."}};
+
+    // Thông tin mở rộng về lịch sử, thời gian và hoạt động của lễ hội tiêu biểu tại 34 tỉnh/thành.
+    const festivalDetails = {"An Giang":{"title":"Lễ hội Vía Bà Chúa Xứ Núi Sam","origin":"Lễ hội hình thành từ tín ngưỡng thờ Bà của cư dân vùng Châu Đốc trong quá trình khai phá và giao lưu văn hóa Việt – Chăm – Khmer – Hoa. Truyền thuyết về pho tượng Bà được lưu truyền qua nhiều thế hệ; tư liệu địa phương cho biết miếu được trùng tu vào khoảng năm 1870, từ đó lễ hội ngày càng thu hút đông người. Không có tài liệu xác định chính xác năm khởi đầu.","time":"Hằng năm từ ngày 22 đến ngày 27 tháng 4 âm lịch; ngày chính vía thường là 25/4 âm lịch.","activities":"Lễ khai hội, lễ phục hiện rước tượng Bà, lễ tắm Bà và thay y phục, thỉnh sắc thần Thoại Ngọc Hầu, lễ Túc yết, Xây chầu, Chánh tế và Hồi sắc. Người dân dâng hương, cầu bình an, sức khỏe, mùa màng và cuộc sống no ấm.","sources":[["Cổng Thông tin Chính phủ – UNESCO ghi danh lễ hội","https://xaydungchinhsach.chinhphu.vn/le-hoi-via-ba-chua-xu-nui-sam-la-di-san-van-hoa-phi-vat-the-dai-dien-cua-nhan-loai-119241204234205429.htm"],["Ủy ban Nhà nước về người Việt Nam ở nước ngoài – nét tín ngưỡng và lịch sử","https://scov.gov.vn/ban-sac-van-hoa/le-hoi-via-ba-chua-xu-nui-sam-net-tin-nguong-tam-linh-vung-an-giang.html"]]},"Bắc Ninh":{"title":"Hội Lim – sinh hoạt văn hóa Quan họ","origin":"Hội Lim phát triển thành hội hàng tổng của vùng Nội Duệ từ thế kỷ XVIII. Lễ hội gắn với không gian văn hóa Kinh Bắc, tục tế lễ, rước thần và sinh hoạt của các làng Quan họ. Qua các giai đoạn lịch sử, hội có thời kỳ gián đoạn rồi được phục hồi và duy trì.","time":"Thường tổ chức ngày 12 và 13 tháng Giêng âm lịch tại khu vực đồi Lim và các làng Quan họ. Lịch từng năm có thể được địa phương điều chỉnh.","activities":"Phần lễ có rước, tế và dâng hương. Phần hội nổi bật với hát Quan họ đối đáp trên thuyền, tại sân đình, cửa chùa và các lán hát; ngoài ra còn có trò chơi dân gian, giao lưu văn nghệ và thưởng thức trang phục, phong tục Kinh Bắc.","sources":[["Sở Văn hóa, Thể thao và Du lịch Bắc Ninh – Hội Lim 2026","https://svhttdl.bacninh.gov.vn/news/-/details/188850/le-on-nhan-danh-hieu-di-san-van-hoa-phi-vat-the-quoc-gia-hoi-lim-va-khai-mac-le-hoi-lim-xuan-binh-ngo-2026-93704931"],["Cổng thông tin tỉnh Bắc Ninh – Đến hẹn lại về với Hội Lim","https://bacninh.gov.vn/en/news/-/details/37632/-en-hen-lai-ve-voi-hoi-lim-23470201"]]},"Cà Mau":{"title":"Lễ hội Nghinh Ông Sông Đốc","origin":"Đây là lễ cầu ngư của cộng đồng ngư dân Sông Đốc, thờ Cá Ông (Nam Hải Đại Tướng Quân) với niềm tin cá Ông che chở tàu thuyền khi gặp sóng gió. Tư liệu di sản ghi lại câu chuyện cá Ông dạt vào vùng Rạch Gốc năm 1925; lăng thờ được lập và sau đó chuyển về Sông Đốc. Tín ngưỡng thờ Cá Ông đã được cộng đồng duy trì qua nhiều thế hệ.","time":"Ngày 15 và 16 tháng 2 âm lịch hằng năm; một số hoạt động có thể bắt đầu từ ngày trước lễ chính.","activities":"Nổi bật là nghi thức nghinh/rước Ông trên biển, dâng hương và tế lễ tại lăng, cầu cho trời yên biển lặng, chuyến biển an toàn và đánh bắt thuận lợi. Không khí lễ hội còn có biểu diễn văn nghệ, sinh hoạt cộng đồng và các hoạt động dịch vụ ven biển.","sources":[["Cục Di sản văn hóa – Lễ hội Nghinh Ông Sông Đốc","https://dsvh.gov.vn/le-hoi-nghinh-ong-song-doc-3369"],["Công an tỉnh Cà Mau – thông tin tổ chức lễ hội năm 2026","https://congan.camau.gov.vn/ch40/7616.prt"]]},"Cao Bằng":{"title":"Lễ hội Lồng Tồng (xuống đồng)","origin":"Lồng Tồng là lễ hội nông nghiệp lâu đời của cộng đồng Tày, Nùng ở vùng Việt Bắc. Lễ hội bắt nguồn từ tín ngưỡng cầu mùa, tạ ơn trời đất và các vị thần bảo hộ ruộng đồng. Đây là tập quán được lưu truyền qua nhiều thế hệ, không có một năm khai sinh thống nhất cho toàn tỉnh vì mỗi làng có lịch hội riêng.","time":"Thường diễn ra sau Tết Nguyên đán, chủ yếu trong tháng Giêng âm lịch; ngày cụ thể tùy làng, xã và kế hoạch từng năm.","activities":"Cộng đồng chuẩn bị lễ vật, dâng hương cầu mưa thuận gió hòa, mùa màng tốt tươi; thực hiện nghi thức xuống đồng hoặc gieo hạt tượng trưng. Phần hội có hát then, đàn tính, tung còn, kéo co, đẩy gậy, múa lân và các trò chơi dân gian.","sources":[["Cổng thông tin du lịch Cao Bằng","https://dulichcaobang.vn/"]]},"Cần Thơ":{"title":"Lễ hội Oóc Om Bóc – đua ghe Ngo của người Khmer","origin":"Oóc Om Bóc, còn gọi là lễ Cúng Trăng, là một trong những lễ lớn truyền thống của người Khmer Nam Bộ. Lễ diễn ra sau mùa thu hoạch, thể hiện lòng biết ơn Thần Mặt Trăng và ước vọng mùa màng thuận lợi. Đua ghe Ngo là sinh hoạt văn hóa – thể thao gắn với chùa Khmer và cộng đồng phum sóc, được gìn giữ qua nhiều thế hệ.","time":"Lễ cúng thường diễn ra tối 14 tháng 10 âm lịch và ngày rằm 15 tháng 10 âm lịch. Các hoạt động đua ghe Ngo tại khu vực Sóc Trăng cũ thường được tổ chức quanh dịp này; lịch thi đấu từng năm do ban tổ chức công bố.","activities":"Gia đình và chùa Khmer bày lễ vật cúng trăng như cốm dẹp, dừa, chuối, khoai và mía; người lớn thực hiện nghi thức đút cốm dẹp cho trẻ nhỏ. Phần hội có đua ghe Ngo trên sông, trình diễn nghệ thuật Khmer, thả đèn nước và giao lưu cộng đồng.","sources":[["Cục Di sản văn hóa – Lễ hội đua ghe Ngo của người Khmer","https://dsvh.gov.vn/le-hoi-dua-ghe-ngo-cua-nguoi-khmer-3441"],["Cổng Du lịch quốc gia – Lễ Oóc Om Bóc và hội đua ghe Ngo","https://vietnamtourism.vn/index.php/tourism/items/1637"]]},"Đà Nẵng":{"title":"Lễ hội Quán Thế Âm Ngũ Hành Sơn","origin":"Lễ hội gắn với chùa Quán Thế Âm và không gian văn hóa tâm linh Ngũ Hành Sơn. Sinh hoạt tín ngưỡng này được hình thành từ năm 1956, sau đó phát triển thành sự kiện văn hóa – Phật giáo lớn của Đà Nẵng và được ghi danh là di sản văn hóa phi vật thể quốc gia.","time":"Thường tổ chức vào các ngày 17–19 tháng 2 âm lịch tại khu danh thắng Ngũ Hành Sơn; chương trình từng năm được thành phố công bố cụ thể.","activities":"Có lễ khai kinh, cầu an, lễ dâng hương, rước tôn tượng và các nghi thức Phật giáo. Phần hội thường có triển lãm văn hóa Phật giáo, thư pháp, trình diễn nghệ thuật, trò chơi dân gian, hoạt động từ thiện và giới thiệu văn hóa địa phương.","sources":[["Cổng thông tin du lịch Đà Nẵng – Lễ hội Quán Thế Âm","https://danangfantasticity.com/en/le-hoi-truyen-thong/le-hoi-quan-the-am-ngu-hanh-son"]]},"Đắk Lắk":{"title":"Lễ hội Cà phê Buôn Ma Thuột","origin":"Đây là lễ hội văn hóa – kinh tế hiện đại, được tổ chức lần đầu vào năm 2005 để tôn vinh cây cà phê, người trồng cà phê và thương hiệu cà phê Buôn Ma Thuột. Sự kiện được phát triển thành hoạt động định kỳ, góp phần quảng bá sản phẩm và văn hóa Tây Nguyên.","time":"Thường tổ chức vào tháng 3 dương lịch, định kỳ khoảng 2 năm một lần; thời gian từng kỳ có thể thay đổi theo kế hoạch của tỉnh.","activities":"Các hoạt động thường gồm hội chợ và triển lãm cà phê, giới thiệu sản phẩm, trải nghiệm pha chế – thưởng thức cà phê, hội thảo ngành hàng, biểu diễn nghệ thuật, chương trình đường phố và hoạt động giới thiệu văn hóa các dân tộc Tây Nguyên.","sources":[["Báo Điện tử Chính phủ – Lễ hội Cà phê Buôn Ma Thuột lần thứ ba và lịch sử từ năm 2005","https://baochinhphu.vn/hom-nay-10-3-khai-mac-le-hoi-ca-phe-buon-ma-thuot-lan-3-10265376.htm"],["Cổng thông tin du lịch quốc gia – Lễ hội Cà phê Buôn Ma Thuột","https://govietnam.travel/events/le-hoi-ca-phe-buon-ma-thuot/"]]},"Điện Biên":{"title":"Lễ hội Hoa Ban","origin":"Lễ hội Hoa Ban cấp tỉnh được tổ chức lần đầu vào năm 2014, gắn với dịp kỷ niệm 60 năm Chiến thắng Điện Biên Phủ. Hoa ban vốn là biểu tượng văn hóa của vùng Tây Bắc; lễ hội hiện đại được xây dựng nhằm tôn vinh bản sắc các dân tộc và quảng bá văn hóa – du lịch Điện Biên.","time":"Thường khai mạc vào trung tuần tháng 3 dương lịch, đúng mùa hoa ban nở; các ngày cụ thể thay đổi theo từng năm.","activities":"Chương trình nghệ thuật khai mạc, diễu hành văn hóa đường phố, trình diễn trang phục và dân ca dân vũ các dân tộc, thi đấu thể thao – trò chơi dân gian, giới thiệu ẩm thực, sản phẩm địa phương và tour du lịch lịch sử Điện Biên Phủ.","sources":[["Sở Văn hóa, Thể thao và Du lịch Điện Biên – lịch sử Lễ hội Hoa Ban","https://svhttdl.dienbien.gov.vn/portal/pages/2021-12-17/Le-Hoi-Hoa-Ban--Diem-hen-nhung-mua-Bancsg9mdjlzxu1.aspx"],["Bộ Văn hóa, Thể thao và Du lịch – Lễ hội Hoa Ban","https://bvhttdl.gov.vn/dien-bien-le-hoi-hoa-ban-diem-hen-nhung-mua-ban-20211220083123287.htm"]]},"Đồng Nai":{"title":"Lễ hội Sayangva – cúng Thần Lúa của người Chơ Ro","origin":"Sayangva là lễ hội nông nghiệp quan trọng của người Chơ Ro, còn gọi là lễ mừng lúa mới. Tập quán này được truyền lại qua nhiều thế hệ, thể hiện mối gắn bó giữa cộng đồng với ruộng rẫy và niềm tin vào thần linh bảo hộ mùa màng. Tư liệu dân tộc học ghi nhận nghi lễ đã tồn tại lâu đời, không có năm khởi lập chính xác.","time":"Thường diễn ra trong khoảng từ ngày 15 tháng 2 đến 15 tháng 4 âm lịch; từng bản, từng cộng đồng chọn ngày phù hợp sau mùa thu hoạch.","activities":"Người dân chuẩn bị lúa mới, rước hồn lúa và dâng lễ tại kho lúa, nhà sàn hoặc bàn thờ truyền thống; làm lễ tạ ơn thần lúa, cầu mùa sau tốt tươi. Phần hội có cồng chiêng, múa dân gian, kéo co, bắn nỏ, trò chơi cộng đồng và cùng thưởng thức cơm lam, rượu cần.","sources":[["Cổng thông tin tỉnh Đồng Nai – đề nghị ghi danh lễ hội Sayangva","https://dongnai.gov.vn/vi/news/tin-hoat-dong-linh-vuc-nganh/de-nghi-ghi-danh-le-hoi-sayangva-la-di-san-quoc-gia-45185.html"],["Thư viện tỉnh Đồng Nai – giá trị tinh thần trong lễ hội Sa Yang Va","https://www.thuviendongnai.gov.vn/vhdantocdn/Lists/Posts/Post.aspx?ID=1"]]},"Đồng Tháp":{"title":"Lễ hội Gò Tháp – vía Bà Chúa Xứ và tưởng niệm nghĩa quân","origin":"Lễ hội Gò Tháp là sinh hoạt tín ngưỡng – tưởng niệm được cộng đồng vùng Đồng Tháp Mười lưu truyền qua nhiều thế hệ tại khu di tích Gò Tháp. Lễ hội kết hợp thờ Bà Chúa Xứ với tưởng nhớ hai thủ lĩnh chống Pháp Thiên Hộ Dương và Đốc Binh Kiều; không có một năm khai sinh duy nhất được xác nhận.","time":"Có hai kỳ chính: ngày 14–16 tháng 3 âm lịch tưởng niệm Bà Chúa Xứ; ngày 14–16 tháng 11 âm lịch tưởng niệm Thiên Hộ Dương và Đốc Binh Kiều.","activities":"Phần lễ gồm dâng hương, cúng Bà, cúng tiền nhân, cầu an và các nghi thức dân gian. Phần hội có cải lương, đờn ca tài tử, múa bóng rỗi, lân – sư – rồng, chợ quê, triển lãm di sản và trò chơi như kéo co, đẩy gậy, nhảy bao bố.","sources":[["Cổng du lịch Đồng Tháp – các lễ hội truyền thống","https://dulich.dongthap.gov.vn/iv/detailnews/?id=news_557&t=nhung-le-hoi-truyen-thong-o-dong-thap"],["Cổng thông tin tỉnh Đồng Tháp – Lễ hội Vía Bà Chúa Xứ Gò Tháp","https://dongthap.gov.vn/web/svhttdldt/tin-tuc/chi-tiet?id=3912274"]]},"Gia Lai":{"title":"Lễ hội kỷ niệm Chiến thắng Ngọc Hồi – Đống Đa","origin":"Lễ hội tưởng niệm chiến thắng Ngọc Hồi – Đống Đa mùa xuân Kỷ Dậu 1789, gắn với Hoàng đế Quang Trung – Nguyễn Huệ, phong trào Tây Sơn và các tướng sĩ. Hoạt động kỷ niệm được tổ chức tại quê hương Tây Sơn, duy trì như một dịp giáo dục lịch sử và tri ân tiền nhân.","time":"Thường khai hội từ mùng 4 tháng Giêng âm lịch; chuỗi hoạt động có thể kéo dài đến mùng 5 hoặc mùng 6 Tết tại khu vực Tây Sơn.","activities":"Có lễ dâng hương tại Bảo tàng Quang Trung, tượng đài Quang Trung và đền thờ Tây Sơn Tam Kiệt. Phần hội thường có biểu diễn võ cổ truyền Bình Định, bài chòi, múa lân – sư – rồng, cồng chiêng, nghệ thuật truyền thống và trò chơi dân gian.","sources":[["Cổng thông tin UBND tỉnh Gia Lai – tổ chức lễ hội kỷ niệm 235 năm chiến thắng","https://vpub.gialai.gov.vn/tin-tu-tinh/to-chuc-le-hoi-ky-niem-235-nam-chien-thang-ngoc-hoi-dong-da-1789-2024-.html"],["Sở Văn hóa, Thể thao và Du lịch Gia Lai – kỷ niệm chiến thắng năm 2025","https://svhttdl.gialai.gov.vn/van-hoa-nghe-thuat/binh-dinh-ky-niem-236-nam-chien-thang-ngoc-hoi-dong-da-565.html"]]},"Hà Nội":{"title":"Hội Gióng ở đền Sóc và đền Phù Đổng","origin":"Hội Gióng tái hiện truyền thuyết Thánh Gióng đánh giặc Ân, một trong những biểu tượng về tinh thần chống ngoại xâm của người Việt. Lễ hội được cộng đồng các làng quanh đền Sóc và đền Phù Đổng gìn giữ qua nhiều thế hệ; năm 2010 được UNESCO ghi danh là di sản văn hóa phi vật thể đại diện của nhân loại.","time":"Có hai hội chính: đền Sóc tổ chức từ mùng 6 đến mùng 8 tháng Giêng âm lịch; đền Phù Đổng tổ chức từ ngày 7 đến ngày 9 tháng 4 âm lịch.","activities":"Các nghi thức gồm tế Thánh, rước nước, rước cờ và các đoàn biểu tượng. Phần hội mô phỏng trận đánh qua hệ thống vai diễn, tướng lĩnh và đạo quân; ở đền Sóc còn có rước hoa tre, rước voi và tục tranh hoa tre cầu may.","sources":[["Cục Di sản văn hóa – Hội Gióng ở đền Phù Đổng và đền Sóc","https://dsvh.gov.vn/hoi-giong-o-den-phu-dong-va-den-soc-486"],["Cổng thông tin du lịch quốc gia – Hội Gióng","https://govietnam.travel/events/hoi-giong-phu-dong/"]]},"Hà Tĩnh":{"title":"Lễ hội Hải Thượng Lãn Ông","origin":"Lễ hội được hình thành từ tập tục tưởng niệm Đại danh y Lê Hữu Trác sau khi ông mất ngày rằm tháng Giêng năm 1791. Người dân Hương Sơn hằng năm làm lễ giỗ để tri ân y đức và đóng góp của ông; năm 2015 lễ hội được đưa vào danh mục di sản văn hóa phi vật thể quốc gia.","time":"Diễn ra từ ngày 13 đến ngày 15 tháng Giêng âm lịch, trong đó ngày 15 là ngày giỗ của Đại danh y.","activities":"Có lễ dâng hương tại khu mộ, cúng tế ở nhà thờ Lê Hữu Trác và lễ cầu an, cầu sức khỏe tại chùa Tượng Sơn. Phần hội tổ chức đua thuyền trên sông Ngàn Phố, thi nấu bánh chưng, đẩy gậy, vật tay, chạy việt dã và hoạt động văn hóa đầu xuân.","sources":[["Cổng thông tin tỉnh Hà Tĩnh – Nhân lên những giá trị nhân văn của lễ hội","https://hatinh.gov.vn/vi/bai-viet/nhan-len-nhung-gia-tri-nhan-van-cua-le-hoi-hai-thuong-lan-ong"]]},"Hải Phòng":{"title":"Lễ hội chọi trâu truyền thống Đồ Sơn","origin":"Lễ hội dân gian lâu đời của cư dân miền biển Đồ Sơn, gắn với tín ngưỡng thờ thủy thần, nghi lễ hiến sinh và ước vọng làm chủ biển cả. Cộng đồng lưu truyền lễ hội qua nhiều thế hệ; năm 2012 được đưa vào danh mục di sản văn hóa phi vật thể quốc gia. Không có tư liệu thống nhất về năm ra đời chính xác.","time":"Phần hội chính thường diễn ra ngày 9 tháng 8 âm lịch. Theo mô hình truyền thống hiện nay, vòng đấu loại có thể tổ chức ngày 8 tháng 6 âm lịch; các nghi lễ mở hội và rước nước diễn ra trước ngày chính hội.","activities":"Phần lễ có dâng hương, thượng cờ, rước nước, tế thần và tống thần. Phần hội là các trận đấu theo thể thức do ban tổ chức quy định; ý nghĩa chính là sinh hoạt cộng đồng, tinh thần thượng võ và cầu mong mưa thuận gió hòa, cuộc sống bình an.","sources":[["Cổng thông tin thành phố Hải Phòng – kế hoạch lễ hội năm 2026","https://www.haiphong.gov.vn/tin-tuc-su-kien/trang-trong-le-dang-huong-thuong-co-khai-hoi-vong-chung-ket-le-hoi-choi-trau-truyen-thong-do-son-962664"],["Cổng thông tin thành phố Hải Phòng – giá trị di sản và ngày hội","https://haiphong.gov.vn/tin-so-nganh/thao-luan-xay-dung-ke-hoach-to-chuc-le-hoi-choi-trau-do-son-2025-an-toan-hieu-qua-xung-tam-di-san-van-hoa-phi-vat-the-quoc-gia-761359"]]},"Huế":{"title":"Lễ hội Điện Huệ Nam (Điện Hòn Chén)","origin":"Lễ hội dân gian truyền thống gắn với Điện Huệ Nam trên núi Ngọc Trản và đình làng Hải Cát, thờ Thánh Mẫu Thiên Y A Na. Lễ hội là sự giao thoa tín ngưỡng dân gian của xứ Huế và được cộng đồng duy trì từ lâu đời; không có năm khởi lập chính xác.","time":"Mỗi năm có hai kỳ: xuân tế vào tháng 3 âm lịch và thu tế vào tháng 7 âm lịch. Kỳ tháng 3 thường tổ chức khoảng ngày 2–3/3 âm lịch; lịch cụ thể do thành phố công bố.","activities":"Đoàn rước đường bộ và đoàn thuyền trên sông Hương cung nghinh Thánh Mẫu từ đình Hải Cát đến điện; có lễ cáo yết, chánh tế, hồi loan, phóng sinh, phóng đăng và diễn xướng chầu văn. Không gian thuyền bằng, cờ phướn và hương án là nét đặc trưng dễ nhận biết.","sources":[["Sở Văn hóa và Thể thao thành phố Huế – Lễ hội truyền thống Điện Huệ Nam","https://svhtt.hue.gov.vn/p/chuyen-trang-phong-trao/tin-trong-tinh/le-hoi-truyen-thong-dien-hue-nam-thang-ba-am-lich-nam-2023.html"],["Sở Văn hóa và Thể thao thành phố Huế – lịch tổ chức tháng 3 âm lịch","https://svhtt.hue.gov.vn/p/chuyen-trang-phong-trao/tin-trong-tinh/hop-ra-soat-cong-tac-to-chuc-le-hoi-dien-hue-nam-thang-3-am-lich.html"]]},"Hưng Yên":{"title":"Lễ hội Chử Đồng Tử – Tiên Dung","origin":"Lễ hội gắn với truyền thuyết tình yêu Chử Đồng Tử – Tiên Dung, một câu chuyện dân gian nổi tiếng của vùng châu thổ sông Hồng. Cộng đồng làng ven sông lưu truyền lễ hội để tưởng niệm hai nhân vật và gửi gắm những giá trị về tình yêu, lòng hiếu thảo, tinh thần khai phá và cuộc sống nhân nghĩa.","time":"Hằng năm từ ngày 10 đến ngày 12 tháng 2 âm lịch, tiêu biểu tại đền Đa Hòa và đền Dạ Trạch.","activities":"Nghi lễ nổi bật là rước nước lấy từ giữa sông Hồng về đền để dâng thánh. Đoàn rước có cờ, trống, phường bát âm, múa sênh tiền; phần hội có trò chơi dân gian, biểu diễn nghệ thuật và sinh hoạt cộng đồng.","sources":[["Cổng du lịch Hưng Yên – Hưng Yên mùa lễ hội","https://dulich.hungyen.gov.vn/vi/detailevents/?id=event_979&t=hung-yen-mua-le-hoi"]]},"Khánh Hòa":{"title":"Lễ hội Tháp Bà Ponagar","origin":"Lễ hội bắt nguồn từ tín ngưỡng thờ nữ thần Po Ina Nagar – Mẹ xứ sở của người Chăm. Khi người Việt đến sinh sống ở vùng Khánh Hòa, tín ngưỡng này được tiếp biến thành thờ Thiên Y A Na Thánh Mẫu. Lễ hội gắn với quần thể tháp Chăm cổ và được ghi danh di sản văn hóa phi vật thể quốc gia năm 2012.","time":"Từ ngày 20 đến ngày 23 tháng 3 âm lịch hằng năm tại di tích Tháp Bà Ponagar ở Nha Trang.","activities":"Các nghi lễ chính gồm thay y và tắm tượng, thả hoa đăng, cầu quốc thái dân an, tế lễ cổ truyền, lễ Tôn Vương và dâng hương tạ Mẫu. Phần diễn xướng có múa bóng, hát văn và hát bội; đông đảo người Chăm, người Kinh cùng các cộng đồng miền Trung – Tây Nguyên tham dự.","sources":[["Cục Di sản văn hóa – Lễ hội Tháp Bà Pônagar","https://dsvh.gov.vn/le-hoi-thap-ba-ponagar-3155"],["Cổng thông tin du lịch Khánh Hòa – di tích Po Nagar","https://ttdhsdl.khanhhoa.gov.vn/TourismResources/Detail/VanHoa-2"]]},"Lai Châu":{"title":"Lễ hội Then Kin Pang của người Thái trắng","origin":"Then Kin Pang là sinh hoạt tín ngưỡng – diễn xướng truyền thống của người Thái trắng ở Mường So, Khổng Lào. Then được xem là người kết nối cộng đồng với thế giới thần linh; lễ hội là dịp tạ ơn, cầu phúc và gìn giữ làn điệu Then, đàn tính cùng tập quán của người Thái qua nhiều thế hệ.","time":"Theo tục lệ diễn ra vào ngày 10 tháng 3 âm lịch; chương trình lễ hội hiện nay thường kéo dài khoảng hai ngày quanh mốc 9–10/3 âm lịch.","activities":"Phần lễ có cúng Then khai hội, dâng hương, tẩy trần và cầu phúc. Phần hội có trình diễn hát Then – đàn tính, múa xòe, té nước cầu may, trình diễn gội đầu Áp hô Pang, tung còn, tó má lẹ, kéo co, bắt cá và giới thiệu ẩm thực Thái.","sources":[["Cổng du lịch Lai Châu – nguồn gốc và nội dung Then Kin Pang","https://dulich.laichau.gov.vn/vi/blog/details/le-hoi-then-kin-pang-linh-hon-cua-nguoi-thai-trang-o-lai-chau-794"],["Cổng du lịch Lai Châu – kế hoạch lễ hội năm 2026","https://dulich.laichau.gov.vn/vi/blog/details/lai-chau-to-chuc-le-hoi-then-kin-pang-nam-2026-tai-xa-khong-lao-1295"]]},"Lâm Đồng":{"title":"Lễ hội Katê của người Chăm","origin":"Katê là lễ hội truyền thống quan trọng của cộng đồng Chăm theo đạo Bàlamôn, gắn với việc tưởng nhớ các vị thần, vua được tôn kính và tổ tiên. Ở vùng Ninh Thuận cũ nay thuộc tỉnh Lâm Đồng, lễ hội được duy trì tại các tháp Chăm, làng Chăm và gia đình; tập quán này có lịch sử lâu đời, không có năm thành lập chính xác.","time":"Trọng tâm vào ngày 1 tháng 7 Chăm lịch, thường rơi vào khoảng tháng 9–10 dương lịch tùy năm. Các nghi lễ có thể diễn ra từ cuối tháng 6 đến những ngày đầu tháng 7 Chăm lịch.","activities":"Các chức sắc và cộng đồng rước y trang lên tháp, mở cửa tháp, tắm và mặc y phục cho tượng thờ, dâng lễ vật và cầu mưa thuận gió hòa. Phần hội có trống Ginăng, kèn Saranai, múa Chăm, hòa tấu mã la và sinh hoạt cộng đồng tại làng.","extra":"Lâm Đồng còn nổi bật với Festival Hoa Đà Lạt, sự kiện hiện đại khởi đầu năm 2005 và thường tổ chức hai năm một lần vào tháng 12.","sources":[["Bộ Văn hóa, Thể thao và Du lịch – Lễ hội Katê ở Ninh Thuận và Bình Thuận","https://bvhttdl.gov.vn/tung-bung-le-hoi-kate-o-ninh-thuan-va-binh-thuan-2024100314485298.htm"],["Báo Quân đội nhân dân – lễ hội Katê năm 2026","https://www.qdnd.vn/du-lich/tin-tuc/dong-dao-nguoi-dan-va-du-khach-ve-du-le-hoi-kate-1060143"],["Cổng du lịch Đà Lạt – lịch sử Festival Hoa Đà Lạt","https://dalat.vn/vi/detailnews/?id=news_813&t=nhin-lai-8-ky-festival-hoa-da-lat"]]},"Lạng Sơn":{"title":"Lễ hội đền Kỳ Cùng – Tả Phủ","origin":"Lễ hội gắn với tín ngưỡng thờ Quan lớn Tuần Tranh tại đền Kỳ Cùng và Tả đô đốc Hán Quận công Thân Công Tài tại đền Tả Phủ. Lễ hội thể hiện lòng tri ân những nhân vật có công với vùng đất biên ải và được cộng đồng các dân tộc Xứ Lạng gìn giữ; năm 2015 được công nhận là di sản văn hóa phi vật thể quốc gia.","time":"Từ ngày 22 đến ngày 27 tháng Giêng âm lịch hằng năm.","activities":"Nghi thức đặc sắc là rước kiệu Quan lớn Tuần Tranh từ đền Kỳ Cùng sang đền Tả Phủ và rước trở lại, cùng các nghi lễ tế thần. Phần hội có múa lân – sư – rồng, hát then, sli, lượn, thi giã bánh giầy, bánh ngải, trò chơi dân gian và tục cướp đầu pháo.","sources":[["Cổng thông tin tỉnh Lạng Sơn – khai mạc lễ hội Kỳ Cùng – Tả Phủ","https://langson.gov.vn/tin-moi/khai-mac-le-hoi-ky-cung-ta-phu.html"],["Sở Văn hóa, Thể thao và Du lịch Lạng Sơn – hoạt động lễ hội","https://sovhtt.langson.gov.vn/tin-tuc-su-kien/tin-hoat-dong/phuong-dong-kinh-to-chuc-khai-mac-le-hoi-den-ky-cung.html"]]},"Lào Cai":{"title":"Lễ hội Gầu Tào của người Mông","origin":"Gầu Tào là lễ hội truyền thống của người Mông, bắt nguồn từ nghi lễ tạ ơn và cầu xin thần linh phù hộ cho gia đình có con cái, sức khỏe và cuộc sống thuận lợi. Theo tập quán, có thể do các gia đình cùng hoàn cảnh phối hợp tổ chức; tục dựng cây nêu và thực hành lễ hội được lưu truyền từ lâu đời.","time":"Tổ chức vào mùa xuân, thường trong tháng Giêng âm lịch; ngày cụ thể do gia đình chủ lễ và cộng đồng thống nhất. Theo tập quán truyền thống, lễ có thể gắn với chu kỳ ba năm liên tiếp.","activities":"Nghi lễ dựng cây nêu, dâng lễ và khấn tạ thần linh là phần cốt lõi. Sau đó là múa khèn, hát giao duyên, trình diễn trang phục, trò chơi dân gian, thi tài và các hoạt động cộng đồng của người Mông.","sources":[["Cục Di sản văn hóa – Lễ hội Gầu Tào của người Mông ở Lào Cai","https://dsvh.gov.vn/le-hoi-gau-tao-cua-nguoi-mong-o-lao-cai-3158"]]},"Nghệ An":{"title":"Lễ hội Làng Sen","origin":"Tiền thân của lễ hội là Liên hoan “Tiếng hát từ Làng Sen” tổ chức lần đầu vào tháng 5/1982. Hoạt động được phát triển thành Lễ hội Làng Sen nhằm tưởng nhớ Chủ tịch Hồ Chí Minh, tôn vinh quê hương Kim Liên và tình cảm của nhân dân đối với Bác.","time":"Thường tổ chức trong các ngày 17–19 tháng 5 dương lịch, trọng tâm là ngày 19/5 – kỷ niệm ngày sinh Chủ tịch Hồ Chí Minh.","activities":"Có lễ dâng hoa, dâng hương tại Quảng trường Hồ Chí Minh và Khu di tích Kim Liên, lễ rước ảnh Bác, hành hương về quê Bác, chương trình nghệ thuật, liên hoan dân ca – dân vũ, hội thi thể thao, không gian ẩm thực sen và phiên chợ quê.","sources":[["Visit Nghệ An – Lễ hội Làng Sen","https://visitnghean.gov.vn/su-kien/to-chuc-le-hoi-lang-sen.html"],["Visit Nghệ An – tiền thân Tiếng hát Làng Sen","https://visitnghean.gov.vn/diem-tham-quan/le-hoi-lang-sen"]]},"Ninh Bình":{"title":"Lễ hội Hoa Lư","origin":"Lễ hội tưởng niệm công lao vua Đinh Tiên Hoàng và vua Lê Đại Hành, những người gắn với kinh đô Hoa Lư và buổi đầu xây dựng nhà nước Đại Cồ Việt. Lễ hội được duy trì tại vùng cố đô qua nhiều thế hệ, thể hiện đạo lý uống nước nhớ nguồn; không có một năm khởi lập duy nhất được xác nhận.","time":"Theo thông lệ từ ngày 8 đến ngày 10 tháng 3 âm lịch hằng năm tại khu di tích Cố đô Hoa Lư; kế hoạch từng năm có thể mở rộng thêm ngày.","activities":"Phần lễ có rước nước trên sông Hoàng Long, tế lễ tại đền vua Đinh và vua Lê. Phần hội có trò diễn “Cờ lau tập trận”, múa rồng, đấu vật, thi thư pháp, cờ tướng, kéo chữ và các trò chơi dân gian.","sources":[["Sở Du lịch Ninh Bình – lễ hội Hoa Lư","https://sodulich.ninhbinh.gov.vn/vi/tin-tuc-su-kien/dac-sac-cac-le-hoi-truyen-thong-tieu-bieu-cua-tinh-ninh-binh-1479.html"],["Sở Du lịch Ninh Bình – lễ hội Hoa Lư năm 2026","https://sodulich.ninhbinh.gov.vn/vi/tin-tuc-su-kien/le-hoi-hoa-lu-khong-gian-hoi-tu-gia-tri-lich-su-va-van-hoa-cua-vung-dat-co-do-2598.html"]]},"Phú Thọ":{"title":"Giỗ Tổ Hùng Vương – Lễ hội Đền Hùng","origin":"Tín ngưỡng thờ cúng Hùng Vương có gốc rễ lâu đời trong dân gian. Ngày 10 tháng 3 âm lịch được chuẩn hóa làm ngày Quốc giỗ từ năm 1917 dưới triều vua Khải Định; năm 2012, tín ngưỡng thờ cúng Hùng Vương được UNESCO ghi danh là di sản văn hóa phi vật thể đại diện của nhân loại.","time":"Chính lễ vào ngày 10 tháng 3 âm lịch; chuỗi hoạt động thường diễn ra từ đầu tháng 3 âm lịch tại Khu di tích lịch sử Đền Hùng và các địa phương trong tỉnh.","activities":"Phần lễ gồm dâng hương, rước kiệu, tưởng niệm Quốc Tổ Lạc Long Quân và Tổ Mẫu Âu Cơ. Phần hội có hội trại văn hóa, hát Xoan, thi gói bánh chưng – giã bánh giầy, múa lân, biểu diễn văn nghệ, trò chơi dân gian và trưng bày sản vật vùng Đất Tổ.","sources":[["Viện Hàn lâm Khoa học xã hội Việt Nam – lịch sử ngày Giỗ Tổ","https://vass.gov.vn/bai-nghien-cuu-khxh/hinh-tuong-anh-hung-van-hoa-thoi-dai-hung-vuong-su-xuat-hien-viec-phung-tho-va-y-nghia-trong-doi-song-van-574813"],["Cổng thông tin tỉnh Phú Thọ – kế hoạch Giỗ Tổ năm 2026","https://thanhthuy.phutho.gov.vn/Chuyen-muc-tin/Chi-tiet-tin/t/cum-so-7-trien-khai-cong-tac-chuan-bi-gio-to-hung-vuong-le-hoi-den-hung-va-tuan-van-hoa-du-lich-dat-to-nam-binh-ngo-2026/title/67877/ctitle/3"]]},"Quảng Ngãi":{"title":"Lễ khao lề thế lính Hoàng Sa","origin":"Lễ khao lề có lịch sử gần 400 năm, gắn với việc các chúa Nguyễn lập Đội Hoàng Sa kiêm quản Bắc Hải vào đầu thế kỷ XVII. Các tộc họ ở Lý Sơn duy trì nghi lễ để tưởng nhớ những người lính đi đo đạc hải trình, thu lượm sản vật và thực thi nhiệm vụ ở Hoàng Sa, Trường Sa; nhiều người đã không trở về.","time":"Được tổ chức hằng năm trong tháng 2–3 âm lịch; nhiều làng tổ chức vào khoảng ngày 18–20 tháng 3 âm lịch, lịch cụ thể tùy tộc họ và địa phương.","activities":"Các tộc họ làm lễ tế, đọc văn tế, dâng lễ vật và thực hiện nghi thức thế lính bằng hình nhân, thuyền giấy mang ý nghĩa tưởng niệm. Dịp này còn có hội đua thuyền truyền thống Tứ linh, trưng bày tư liệu về đội Hoàng Sa và hoạt động giáo dục lịch sử biển đảo.","sources":[["Cổng thông tin tỉnh Quảng Ngãi – Lễ khao lề thế lính Hoàng Sa","https://quangngai.gov.vn/du-lich/tong-quan-du-lich-quang-ngai"],["Đặc khu Lý Sơn – lịch sử và ý nghĩa lễ hội","https://lyson.quangngai.gov.vn/danh-muc-cot-phai/tin-tuc/van-hoa-nghe-thuat/le-khao-le-the-linh-hoang-sa-o-ly-son-quy-mo-y-nghia-cua-le-hoi-cap-quoc-gia.html"]]},"Quảng Ninh":{"title":"Lễ hội Xuân Yên Tử","origin":"Lễ hội gắn với Phật hoàng Trần Nhân Tông. Sau khi lãnh đạo Đại Việt kháng chiến thắng lợi, ông đến Yên Tử tu hành vào cuối thế kỷ XIII và sáng lập Thiền phái Trúc Lâm mang bản sắc Việt. Hành hương đầu xuân dần trở thành sinh hoạt văn hóa – tâm linh quan trọng của vùng Yên Tử.","time":"Khai hội vào ngày 10 tháng Giêng âm lịch và kéo dài trong ba tháng mùa xuân, thường đến hết tháng 3 âm lịch.","activities":"Có lễ khai hội, dâng hương, rước kiệu, tụng niệm và hành hương qua hệ thống chùa, am, tháp lên chùa Đồng. Du khách tìm hiểu lịch sử Thiền phái Trúc Lâm, tham gia hoạt động văn hóa dân gian và thưởng ngoạn cảnh quan núi rừng Yên Tử.","sources":[["Cổng thông tin tỉnh Quảng Ninh – khai hội Xuân Yên Tử 2026","https://www.quangninh.gov.vn/Trang/ChiTietTinTuc.aspx?nid=163094"],["Cổng thông tin tỉnh Quảng Ninh – thời gian và ý nghĩa lễ hội","https://www.quangninh.gov.vn/chuyen-de/DH-Dang/Trang/ChiTietTinTuc.aspx?nid=132273"]]},"Quảng Trị":{"title":"Lễ hành hương Đức Mẹ La Vang","origin":"Trung tâm hành hương La Vang gắn với truyền thống Công giáo Việt Nam và câu chuyện Đức Mẹ hiện ra theo niềm tin của giáo dân vào năm 1798. Sau thời gian gián đoạn, các hoạt động hành lễ được khôi phục từ năm 1990; nơi đây trở thành điểm hành hương quan trọng của người Công giáo Việt Nam.","time":"Ngày hành hương thường niên vào 15 tháng 8 dương lịch. Đại hội hành hương quy mô lớn thường tổ chức ba năm một lần, trong các ngày 13–15/8; lịch có thể thay đổi theo quyết định của Giáo hội.","activities":"Các hoạt động gồm thánh lễ, giờ cầu nguyện, rước kiệu Đức Mẹ, hành hương và sinh hoạt tôn giáo – văn hóa của các giáo phận, giáo xứ. Người hành hương đến cầu nguyện, gặp gỡ cộng đồng và tìm hiểu lịch sử Thánh địa La Vang.","sources":[["Thư viện tỉnh Quảng Trị – Đại hội hành hương La Vang 2026","https://thuvien.quangtri.gov.vn/cms/articles/khai-mac-dai-hoi-hanh-huong-duc-me-la-vang-lan-thu-32-1786675037576.html"],["Cổng thông tin xã Hải Lăng – lịch hành hương La Vang","https://hailang.quangtri.gov.vn/chi-tiet-tin/-/view-article/1/1651197532746/1694761442385"]]},"Sơn La":{"title":"Lễ hội Hết Chá của người Thái","origin":"Hết Chá là lễ hội tâm linh – cộng đồng của người Thái ở Mộc Châu, gắn với tục tri ân thầy mo hoặc người làm nghề chữa bệnh, giúp đỡ bản làng. Lễ hội thể hiện lòng biết ơn, sự gắn kết giữa các gia đình và cộng đồng; được lưu truyền qua nhiều thế hệ, không có mốc thành lập chính xác.","time":"Thường diễn ra từ ngày 22 đến ngày 26 tháng 3 dương lịch tại khu vực bản Áng, Mộc Châu, vào thời điểm hoa ban nở và trước mùa vụ mới.","activities":"Phần lễ có nghi thức tạ ơn thầy mo, dựng cây nêu và dâng lễ. Phần hội có múa khăn Piêu quanh cây nêu, múa xòe, hát dân ca, diễn xướng dân gian, trò chơi truyền thống và bữa ăn cộng đồng.","sources":[["Ủy ban Nhà nước về người Việt Nam ở nước ngoài – Lễ hội Hết Chá","https://scov.gov.vn/ban-sac-van-hoa/gioi-thieu-ban-sac-van-hoa/le-hoi-het-cha-dam-da-van-hoa-dan-toc-thai.html"],["Chuyên trang du lịch vùng dân tộc thiểu số – vui hội Hết Chá","https://dantoc.vietnamtourism.gov.vn/vui-hoi-het-cha-voi-nguoi-thai-o-moc-chau-son-la/"]]},"Tây Ninh":{"title":"Hội Xuân Núi Bà Đen và lễ vía Bà Linh Sơn Thánh Mẫu","origin":"Lễ hội gắn với tín ngưỡng thờ Linh Sơn Thánh Mẫu (Bà Đen) tại núi Bà Đen. Các truyền thuyết dân gian và sinh hoạt hành hương được cộng đồng lưu truyền lâu đời; không có năm khởi đầu thống nhất. Lễ vía Bà được công nhận là di sản văn hóa phi vật thể quốc gia năm 2018.","time":"Hội Xuân bắt đầu từ mùng 4 tháng Giêng và kéo dài trong tháng Giêng âm lịch. Lễ vía Bà chính diễn ra từ mùng 4 đến mùng 6 tháng 5 âm lịch.","activities":"Người dân hành hương, dâng hương và cầu bình an, tài lộc tại các chùa, điện trên núi. Trong mùa hội có chương trình khai hội, biểu diễn nghệ thuật, các hoạt động văn hóa – thể thao và sinh hoạt đầu xuân; kỳ vía Bà có nghi thức tắm, thay y phục tượng Bà và lễ dâng hương.","sources":[["Ban Quản lý Khu du lịch quốc gia Núi Bà Đen – lịch hội xuân và vía Bà","https://khudulichnuibaden.tayninh.gov.vn/gioi-thieu-nui-ba-den"],["Ban Quản lý Khu du lịch quốc gia Núi Bà Đen – Hội Xuân","https://khudulichnuibaden.tayninh.gov.vn/le-hoi"]]},"Thái Nguyên":{"title":"Lễ hội Lồng Tồng ATK Định Hóa","origin":"Lồng Tồng, nghĩa là xuống đồng, là lễ hội nông nghiệp truyền thống của người Tày và một số cộng đồng Việt Bắc. Lễ hội bắt nguồn từ tín ngưỡng cầu mùa, tạ ơn thần Nông và ước vọng năm mới no ấm. Tập quán được truyền qua nhiều thế hệ; không có năm ra đời cụ thể.","time":"Thường diễn ra ngày 9–10 tháng Giêng âm lịch; hội ATK Định Hóa thường được tổ chức quanh ngày mùng 10 tháng Giêng.","activities":"Có nghi lễ cầu mùa, cày hoặc gieo hạt tượng trưng, dâng lễ vật và cầu thần Nông phù hộ mùa màng. Phần hội có tung còn, hát then, đàn tính, thi cấy, kéo co, đẩy gậy, cờ tướng và các trò chơi dân gian.","sources":[["Cổng thông tin tỉnh Thái Nguyên – Lồng Tồng ATK Định Hóa","https://thainguyen.gov.vn/thoi-su/khai-hoi-long-tong-atk-dinh-hoa-2025-171890"],["Sở Văn hóa, Thể thao và Du lịch Thái Nguyên – lễ hội truyền thống","https://sovhttdl.thainguyen.gov.vn/hoat-dong-van-hoa/le-hoi-truyen-thong-tren-dia-ban-tinh-thai-nguyen-192933"]]},"Thanh Hóa":{"title":"Lễ hội Lam Kinh","origin":"Lễ hội bắt nguồn từ tục tế giỗ vua Lê Thái Tổ sau khi ông mất năm 1433 và được an táng tại Lam Kinh. Các vua và con cháu triều Hậu Lê hằng năm về làm giỗ, dần hình thành truyền thống lễ hội tưởng niệm công lao vua Lê Lợi và nghĩa quân Lam Sơn.","time":"Chính lễ vào ngày 22 tháng 8 âm lịch; các nghi thức tưởng niệm Lê Lai thường diễn ra ngày 21/8 âm lịch. Chương trình hiện nay có thể kéo dài thêm ngày.","activities":"Có lễ dâng hương, tế lễ, rước kiệu Lê Lai và kiệu vua Lê Thái Tổ về sân Rồng, tưởng niệm tại chính điện và khu lăng mộ. Phần hội có trình diễn nghệ thuật, trò diễn dân gian xứ Thanh, phiên chợ vùng cao và hoạt động quảng bá di sản Lam Kinh.","sources":[["Cổng du lịch Thanh Hóa – Lễ hội Lam Kinh","https://www.dulich.thanhhoa.vn/trang-ch%E1%BB%A7/l%E1%BB%85-h%E1%BB%99i/l%E1%BB%85-h%E1%BB%99i-lam-kinh"],["Khu di tích Lam Kinh – kế hoạch năm 2026","https://thanhnhaho.vn/NewsDetail.aspx?Id=22186"]]},"Thành phố Hồ Chí Minh":{"title":"Lễ hội Nguyên Tiêu ở khu vực Chợ Lớn","origin":"Nguyên Tiêu là ngày rằm tháng Giêng theo truyền thống văn hóa Hoa, được cộng đồng người Hoa tại Chợ Lớn gìn giữ qua nhiều thế hệ. Lễ hội kết hợp tín ngưỡng cầu an đầu năm với hoạt động tại các hội quán, miếu và chùa, đồng thời thể hiện sự giao lưu văn hóa Hoa – Việt tại đô thị Sài Gòn – Chợ Lớn.","time":"Ngày 15 tháng Giêng âm lịch hằng năm; các chương trình diễu hành, biểu diễn có thể bố trí trong những ngày trước hoặc đúng rằm.","activities":"Các hội quán, miếu, chùa trang hoàng đèn lồng, cờ hoa; người dân dâng hương, cúng tế và cầu an. Phần hội có múa lân – sư – rồng, trống hội, biểu diễn nghệ thuật truyền thống và diễu hành đường phố với trang phục, nhân vật dân gian của cộng đồng Hoa.","sources":[["Sở Văn hóa và Thể thao TP.HCM – Đêm hội Nguyên Tiêu 2026","https://svhtt.hochiminhcity.gov.vn/tin-chi-tiet/-/chi-tiet/chuong-trinh-%C4%91em-hoi-nguyen-tieu-binh-ngo-2026-25605-1953.html"]]},"Tuyên Quang":{"title":"Lễ hội Thành Tuyên","origin":"Lễ hội bắt nguồn từ năm 2004, khi các gia đình tự làm mô hình đèn Trung thu hình con vật, nhân vật và kéo đi trên phố cho trẻ em vui hội. Từ hoạt động cộng đồng ban đầu, mô hình ngày càng lớn và sáng tạo, được tổ chức thành lễ hội đặc trưng của thành phố Tuyên Quang.","time":"Tổ chức vào dịp Tết Trung thu, cao điểm quanh rằm tháng 8 âm lịch. Ngày diễu diễn và lịch chương trình mỗi năm do tỉnh công bố; năm 2026 chuỗi hoạt động diễn ra trong tháng 9.","activities":"Điểm nhấn là các mô hình đèn Trung thu khổng lồ chuyển động và diễu hành qua phố, đêm hội trăng rằm, múa lân – sư – rồng, chương trình nghệ thuật, trò chơi và hoạt động trải nghiệm dành cho thiếu nhi và gia đình.","sources":[["Cổng thông tin tỉnh Tuyên Quang – nguồn gốc và phát triển lễ hội","https://apictt.tuyenquang.gov.vn/uploads/attachments/cam-nang-du-lich-tuyen-quang.pdf"],["Cổng thông tin tỉnh Tuyên Quang – Lễ hội Thành Tuyên năm 2026","https://bqlckcn.tuyenquang.gov.vn/vi/tin-bai/thong-cao-bao-chi-ve-le-hoi-thanh-tuyen-nam-2026?id=258567&type=NEWS"]]},"Vĩnh Long":{"title":"Lễ hội Nghinh Ông Nam Hải Bình Đại","origin":"Lễ hội là tập quán tín ngưỡng lâu đời của cư dân ven biển Bình Đại, thờ Nam Hải Đại Tướng Quân (Cá Ông) – vị thần được ngư dân tin là cứu giúp tàu thuyền gặp nạn và phù hộ những chuyến biển bình an. Lễ hội được cộng đồng gìn giữ qua nhiều thế hệ và được ghi nhận trong danh mục lễ hội truyền thống.","time":"Thường tổ chức vào khoảng ngày 14–17 tháng 6 âm lịch; một số địa phương tổ chức trọng tâm ngày 15–16/6. Thời gian cụ thể từng năm được UBND địa phương thông báo.","activities":"Có lễ xuất nghinh và rước Ông, cầu an, tế tiền hiền – hậu hiền, lễ xây chầu đại bội và chánh tế. Phần hội có hát bội, múa lân – sư – rồng, trò chơi dân gian, thể thao và hoạt động cộng đồng của ngư dân.","sources":[["Cục Di sản văn hóa – Lễ hội Nghinh Ông Nam Hải Bình Đại năm 2026","https://dsvh.gov.vn/le-hoi-nghinh-ong-nam-hai-xa-binh-dai-tinh-vinh-long-nam-2026-22369"],["Cục Văn hóa cơ sở – thông tin lễ hội Nghinh Ông Bình Thắng","https://lehoi.com.vn/lehoi/detail.aspx?id=7102&pageid=5018"]]}};
+
+
+    const GEOJSON_URLS = [
+      "https://cdn.jsdelivr.net/gh/nguyenduy1133/Free-GIS-Data@main/Vietnam%20Administrative%20Divisions%20(Post-2025)%20-%20%C4%90%C6%A1n%20v%E1%BB%8B%20h%C3%A0nh%20ch%C3%ADnh%20Vi%E1%BB%87t%20Nam%20(T%E1%BB%AB%202025)/Provinces.geojson",
+      "https://raw.githubusercontent.com/nguyenduy1133/Free-GIS-Data/main/Vietnam%20Administrative%20Divisions%20(Post-2025)%20-%20%C4%90%C6%A1n%20v%E1%BB%8B%20h%C3%A0nh%20ch%C3%ADnh%20Vi%E1%BB%87t%20Nam%20(T%E1%BB%AB%202025)/Provinces.geojson"
+    ];
+    const palette = ["#b9d8c5","#d7e8d8","#c4ddd0","#dce9d8","#b5d2c5","#d5e2cc","#c1ddda","#e4ead8","#bad5ca","#d6e6dc"];
+    const byName = new Map(provinces.map(p => [normalize(p.name), p]));
+    let map, geoLayer, selectedName = null, currentFilter = "all", currentSearch = "";
+
+    function normalize(value) {
+      return String(value || "").toLocaleLowerCase("vi")
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/g, "d").replace(/[^a-z0-9]+/g, " ").trim();
+    }
+    function findProvinceFromProperties(props) {
+      if (!props || typeof props !== "object") return null;
+      const vals = Object.values(props).filter(v => typeof v === "string" || typeof v === "number").map(String);
+      // Ưu tiên đối chiếu mọi thuộc tính tên có thể có trong bộ GeoJSON.
+      const preferred = ["ten_tinh","TEN_TINH","Ten_Tinh","name","NAME_1","Name","province","PROVINCE","ten","TEN","tinh"];
+      const ordered = [];
+      for (const key of preferred) if (props[key] !== undefined) ordered.push(String(props[key]));
+      ordered.push(...vals);
+      for (const raw of ordered) {
+        const n = normalize(raw);
+        if (!n) continue;
+        for (const p of provinces) {
+          const candidates = [p.name, ...(p.merged || [])];
+          for (const candidate of candidates) {
+            const c = normalize(candidate);
+            if (n === c || n.endsWith(" " + c) || n.includes(c)) return p;
+          }
+        }
+        // Một vài lớp dữ liệu ghi TP. trước tên thành phố.
+        const cleaned = n.replace(/^(tinh|thanh pho|tp)\s+/, "");
+        for (const p of provinces) if (cleaned === normalize(p.name)) return p;
+      }
+      return null;
+    }
+    function fmtNumber(n) { return new Intl.NumberFormat("vi-VN").format(n); }
+    function getTypeLabel(p) { return p.type === "Thành phố" ? "Thành phố trực thuộc Trung ương" : "Tỉnh"; }
+
+
+    // Các đảo ven bờ và đảo lớn tiêu biểu được giữ trên cùng bản đồ chính.
+    // Tọa độ là điểm định vị khái quát, không phải tọa độ đo đạc pháp lý.
+    const otherIslands = [
+      {id:"co-to",name:"Đảo Cô Tô",lat:20.97,lng:107.77,admin:"Đặc khu Cô Tô · Tỉnh Quảng Ninh",summary:"Quần đảo ngoài khơi Quảng Ninh, nổi bật với bãi biển, nước biển trong và cảnh quan đá ven bờ.",culture:"Hải sản tươi, mực, sá sùng và các món ăn vùng biển Đông Bắc.",history:"Cô Tô là địa bàn đảo tiền tiêu ở vùng biển Đông Bắc; đời sống cư dân gắn với đánh bắt, dịch vụ biển và bảo vệ vùng biển.",highlights:"Bãi Hồng Vàn · Bãi Vàn Chảy · Hải đăng Cô Tô"},
+      {id:"bach-long-vi",name:"Đảo Bạch Long Vĩ",lat:20.13,lng:107.72,admin:"Đặc khu Bạch Long Vĩ · Thành phố Hải Phòng",summary:"Đảo nằm giữa vịnh Bắc Bộ, có vị trí quan trọng về kinh tế biển, nghiên cứu biển và bảo đảm an toàn hàng hải.",culture:"Đời sống đảo gắn với nghề cá, đặc biệt là khai thác và chế biến hải sản.",history:"Bạch Long Vĩ là một trong những đảo tiền tiêu của miền Bắc; quá trình xây dựng, phát triển đảo gắn với nhiệm vụ giữ gìn biển đảo.",highlights:"Âu cảng · Hải đăng · Khu bảo tồn biển"},
+      {id:"cat-ba",name:"Quần đảo Cát Bà",lat:20.73,lng:107.05,admin:"Đặc khu Cát Hải · Thành phố Hải Phòng",summary:"Quần đảo đá vôi với rừng, biển, vịnh và hệ sinh thái phong phú; là phần quan trọng của Di sản thiên nhiên thế giới Vịnh Hạ Long – quần đảo Cát Bà.",culture:"Ẩm thực biển, tu hài, sam và các hoạt động văn hóa của cộng đồng cư dân làng chài.",history:"Cát Bà có dấu tích cư trú của người Việt cổ và truyền thống khai thác biển lâu đời; các làng chài phản ánh đời sống ven biển Bắc Bộ.",highlights:"Vườn quốc gia Cát Bà · Vịnh Lan Hạ · Làng chài Cái Bèo"},
+      {id:"quan-lan",name:"Đảo Quan Lạn – Minh Châu",lat:21.06,lng:107.51,admin:"Đặc khu Vân Đồn · Tỉnh Quảng Ninh",summary:"Cụm đảo thuộc vùng biển Vân Đồn, có bãi cát dài, rừng ven biển và cảnh quan yên bình.",culture:"Sá sùng, hải sản và các món ăn truyền thống của cư dân đảo.",history:"Vân Đồn từng là thương cảng quan trọng trong lịch sử giao thương đường biển của Đại Việt; khu vực Quan Lạn còn lưu dấu các di tích và lễ hội truyền thống.",highlights:"Đình Quan Lạn · Bãi Minh Châu · Eo Gió"},
+      {id:"con-co",name:"Đảo Cồn Cỏ",lat:17.15,lng:107.35,admin:"Đặc khu Cồn Cỏ · Tỉnh Quảng Trị",summary:"Đảo nhỏ ngoài khơi Quảng Trị, có hệ sinh thái biển và rạn san hô đáng chú ý.",culture:"Ẩm thực hải sản, cua đá và các món ăn của cư dân đảo.",history:"Cồn Cỏ gắn với những câu chuyện về sự kiên cường trong kháng chiến, từng được biết đến như một đảo tiền tiêu ở vĩ tuyến 17.",highlights:"Cột cờ Cồn Cỏ · Hải đăng · Rừng nguyên sinh"},
+      {id:"ly-son",name:"Đảo Lý Sơn",lat:15.38,lng:109.12,admin:"Đặc khu Lý Sơn · Tỉnh Quảng Ngãi",summary:"Đảo núi lửa giữa biển, nổi tiếng với ruộng tỏi, miệng núi lửa cổ và cảnh quan địa chất đặc biệt.",culture:"Tỏi Lý Sơn, gỏi tỏi, cá biển; Lễ khao lề thế lính Hoàng Sa là sinh hoạt văn hóa – tín ngưỡng tiêu biểu.",history:"Lý Sơn gắn với đội Hoàng Sa kiêm quản Bắc Hải, những người ra khơi làm nhiệm vụ theo ghi chép lịch sử. Đình làng, Âm Linh tự và các nhà thờ tộc lưu giữ ký ức biển đảo.",highlights:"Hang Câu · Chùa Hang · Núi Thới Lới · Cổng Tò Vò"},
+      {id:"cu-lao-cham",name:"Cù Lao Chàm",lat:15.95,lng:108.52,admin:"Thành phố Đà Nẵng",summary:"Cụm đảo ngoài khơi Hội An, có hệ sinh thái rừng – biển đa dạng và khu bảo tồn biển nổi tiếng.",culture:"Hải sản, rau rừng, cua đá và các món ăn dân dã của cư dân đảo.",history:"Cù Lao Chàm từng nằm trên tuyến giao thương đường biển gắn với thương cảng Hội An; nơi đây lưu giữ dấu tích cư trú và hoạt động buôn bán từ nhiều thế kỷ.",highlights:"Bãi Ông · Bãi Chồng · Giếng cổ Chăm · Khu bảo tồn biển"},
+      {id:"phu-quy",name:"Đảo Phú Quý",lat:10.52,lng:108.93,admin:"Tỉnh Lâm Đồng",summary:"Đảo ngoài khơi duyên hải Nam Trung Bộ, có địa hình núi đá, bãi biển và làng chài.",culture:"Hải sản, cua huỳnh đế, cá thu và các món ăn đặc trưng của cư dân biển.",history:"Phú Quý có lịch sử cư trú và giao thương biển lâu đời; các đình, chùa và lăng vạn phản ánh tín ngưỡng thờ cá Ông của ngư dân.",highlights:"Gành Hang · Núi Cao Cát · Vịnh Triều Dương"},
+      {id:"hon-tre",name:"Đảo Hòn Tre",lat:12.20,lng:109.28,admin:"Tỉnh Khánh Hòa",summary:"Đảo lớn trong vịnh Nha Trang, có địa hình đồi núi, bãi biển và các vũng vịnh kín gió.",culture:"Ẩm thực biển Nha Trang với các món cá, mực, tôm và yến sào Khánh Hòa.",history:"Hòn Tre gắn với lịch sử phát triển đô thị biển Nha Trang và hoạt động khai thác, giao thương ven vịnh.",highlights:"Bãi Trũ · Đầm Bấy · Vịnh Nha Trang"},
+      {id:"con-dao",name:"Quần đảo Côn Đảo",lat:8.69,lng:106.61,admin:"Đặc khu Côn Đảo · Thành phố Hồ Chí Minh",summary:"Quần đảo ngoài khơi Đông Nam Bộ, nổi bật với rừng nguyên sinh, bãi biển và hệ sinh thái biển.",culture:"Hải sản, mắm hàu và các sinh hoạt tín ngưỡng của cộng đồng cư dân đảo.",history:"Côn Đảo là địa danh lịch sử đặc biệt, gắn với hệ thống nhà tù thời thuộc địa và chiến tranh; hiện có nghĩa trang Hàng Dương và nhiều di tích lịch sử.",highlights:"Nhà tù Côn Đảo · Nghĩa trang Hàng Dương · Vườn quốc gia Côn Đảo"},
+      {id:"nam-du",name:"Quần đảo Nam Du",lat:9.68,lng:104.38,admin:"Tỉnh An Giang",summary:"Quần đảo thuộc vùng biển Kiên Giang trước sắp xếp, có nhiều đảo nhỏ và làng chài.",culture:"Cá, mực, nhum biển và các món hải sản địa phương.",history:"Cư dân Nam Du phát triển đời sống gắn với nghề biển và giao thương ven bờ Tây Nam Bộ.",highlights:"Hòn Lớn · Hòn Ngang · Bãi Cây Mến"},
+      {id:"tho-chu",name:"Quần đảo Thổ Chu",lat:9.30,lng:103.47,admin:"Tỉnh An Giang",summary:"Nhóm đảo xa bờ ở phía tây nam Việt Nam, có vị trí quan trọng trong vùng biển vịnh Thái Lan.",culture:"Đời sống ngư dân, hải sản và sinh hoạt cộng đồng trên đảo.",history:"Thổ Chu gắn với lịch sử bảo vệ vùng biển Tây Nam và quá trình xây dựng, phát triển các đảo tiền tiêu.",highlights:"Thổ Chu · Hòn Nhạn · Hòn Xanh"},
+      {id:"phu-quoc",name:"Đảo Phú Quốc",lat:10.22,lng:103.96,admin:"Đặc khu Phú Quốc · Tỉnh An Giang",summary:"Đảo lớn ở vịnh Thái Lan, nổi bật với bờ biển, rừng nhiệt đới và các làng nghề truyền thống.",culture:"Nước mắm Phú Quốc, hồ tiêu, ghẹ Hàm Ninh, gỏi cá trích và các món hải sản.",history:"Phú Quốc có lịch sử cư trú, giao thương và khai thác biển lâu đời; các di tích như Dinh Cậu và nhà tù Phú Quốc phản ánh nhiều lớp lịch sử của đảo.",highlights:"Bãi Sao · Dinh Cậu · Gành Dầu · Vườn quốc gia Phú Quốc"}
+    ];
+
+    // Danh mục tọa độ địa danh biển đảo theo phụ lục Thông tư 33/2024/TT-BTNMT.
+    // Từng điểm là đảo, đá, bãi cạn, bãi ngầm hoặc cụm địa lý; tọa độ VN-2000 được chuyển
+    // sang độ thập phân để hiển thị trên nền bản đồ web. Không phải hải đồ hàng hải.
+    const hoangSaFeatures = [
+      {id:"hs-001",name:"Đá Bắc",type:"Đá / rạn san hô",lat:17.100000,lng:111.513333,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đá Bắc là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-002",name:"Cụm Lưỡi Liềm",type:"Cụm địa lý",lat:16.500000,lng:111.666667,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Cụm Lưỡi Liềm là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-003",name:"Đảo Quang Ảnh",type:"Đảo",lat:16.449167,lng:111.505556,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đảo Quang Ảnh là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-004",name:"Đá Hải Sâm",type:"Đá / rạn san hô",lat:16.466667,lng:111.591667,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đá Hải Sâm là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-005",name:"Đảo Hữu Nhật",type:"Đảo",lat:16.507222,lng:111.583889,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đảo Hữu Nhật là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-006",name:"Đảo Hoàng Sa",type:"Đảo",lat:16.535556,lng:111.606111,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đảo Hoàng Sa là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-007",name:"Đảo Ốc Hoa",type:"Đảo",lat:16.569444,lng:111.662222,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đảo Ốc Hoa là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-008",name:"Bãi Xà Cừ",type:"Bãi cạn / bãi ngầm",lat:16.581667,lng:111.715000,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Bãi Xà Cừ là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-009",name:"Đảo Ba Ba",type:"Đảo",lat:16.567500,lng:111.685000,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đảo Ba Ba là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-010",name:"Đảo Lưỡi Liềm",type:"Đảo",lat:16.508333,lng:111.770000,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đảo Lưỡi Liềm là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-011",name:"Đảo Duy Mộng",type:"Đảo",lat:16.464722,lng:111.739722,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đảo Duy Mộng là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-012",name:"Đảo Quang Hòa",type:"Đảo",lat:16.452778,lng:111.710000,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đảo Quang Hòa là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-013",name:"Bãi Ngự Bình",type:"Bãi cạn / bãi ngầm",lat:16.455278,lng:111.655000,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Bãi Ngự Bình là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-014",name:"Đá Lồi",type:"Đá / rạn san hô",lat:16.250000,lng:111.683333,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đá Lồi là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-015",name:"Đảo Bạch Quy",type:"Đảo",lat:16.058333,lng:111.781667,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đảo Bạch Quy là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-016",name:"Đá Chim Én",type:"Đá / rạn san hô",lat:16.346667,lng:112.043333,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đá Chim Én là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-017",name:"Cụm An Vĩnh",type:"Cụm địa lý",lat:16.893333,lng:112.288333,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Cụm An Vĩnh là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-018",name:"Bãi Bình Sơn",type:"Bãi cạn / bãi ngầm",lat:16.776667,lng:112.220000,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Bãi Bình Sơn là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-019",name:"Bãi Bình Sơn Đông",type:"Bãi cạn / bãi ngầm",lat:16.747500,lng:112.264167,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Bãi Bình Sơn Đông là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-020",name:"Cồn Cát Tây",type:"Cồn cát",lat:16.979167,lng:112.210000,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Cồn Cát Tây là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-021",name:"Đá Trương Nghĩa",type:"Đá / rạn san hô",lat:16.976667,lng:112.263333,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đá Trương Nghĩa là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-022",name:"Đảo Cây",type:"Đảo",lat:16.981111,lng:112.269722,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đảo Cây là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-023",name:"Đảo Bắc",type:"Đảo",lat:16.966667,lng:112.305000,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đảo Bắc là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-024",name:"Đảo Trung",type:"Đảo",lat:16.956667,lng:112.322500,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đảo Trung là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-025",name:"Đảo Nam",type:"Đảo",lat:16.948889,lng:112.331667,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đảo Nam là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-026",name:"Cồn Cát Nam",type:"Cồn cát",lat:16.924167,lng:112.343889,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Cồn Cát Nam là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-027",name:"Bãi Cát Nam",type:"Bãi cạn / bãi ngầm",lat:16.931111,lng:112.343889,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Bãi Cát Nam là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-028",name:"Bãi Cát Trung",type:"Bãi cạn / bãi ngầm",lat:16.935556,lng:112.341667,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Bãi Cát Trung là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-029",name:"Đảo Cát",type:"Đảo",lat:16.939444,lng:112.339722,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đảo Cát là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-030",name:"Đảo Đá",type:"Đảo",lat:16.846111,lng:112.345556,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đảo Đá là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-031",name:"Đảo Phú Lâm",type:"Đảo",lat:16.836667,lng:112.333333,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đảo Phú Lâm là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-032",name:"Bãi Đèn Pha",type:"Bãi cạn / bãi ngầm",lat:16.534722,lng:111.626111,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Bãi Đèn Pha là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-033",name:"Đá Sơn Kỳ",type:"Đá / rạn san hô",lat:16.580000,lng:111.676389,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đá Sơn Kỳ là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-034",name:"Đá Trà Tây",type:"Đá / rạn san hô",lat:16.547500,lng:111.713611,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đá Trà Tây là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-035",name:"Bãi Châu Nhai",type:"Bãi cạn / bãi ngầm",lat:16.326667,lng:112.423333,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Bãi Châu Nhai là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-036",name:"Bãi Thủy Tề Nam lớn",type:"Bãi cạn / bãi ngầm",lat:16.492500,lng:112.496944,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Bãi Thủy Tề Nam lớn là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-037",name:"Bãi Thủy Tề Nam nhỏ",type:"Bãi cạn / bãi ngầm",lat:16.463056,lng:112.477222,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Bãi Thủy Tề Nam nhỏ là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-038",name:"Đá Bông Bay",type:"Đá / rạn san hô",lat:16.033333,lng:112.500000,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đá Bông Bay là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-039",name:"Bãi cạn Gò Nổi",type:"Bãi cạn / bãi ngầm",lat:16.822222,lng:112.884444,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Bãi cạn Gò Nổi là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-040",name:"Đảo Linh Côn",type:"Đảo",lat:16.671667,lng:112.726667,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đảo Linh Côn là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-041",name:"Đá Hòn Tháp Bắc",type:"Đá / rạn san hô",lat:16.593889,lng:112.631389,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đá Hòn Tháp Bắc là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-042",name:"Hòn Tháp",type:"Hòn",lat:16.578333,lng:112.640556,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Hòn Tháp là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-043",name:"Bãi Thủy Tề Bắc",type:"Bãi cạn / bãi ngầm",lat:16.550278,lng:112.589722,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Bãi Thủy Tề Bắc là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-044",name:"Bãi Thủy Tề",type:"Bãi cạn / bãi ngầm",lat:16.524722,lng:112.545833,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Bãi Thủy Tề là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-045",name:"Bãi Quảng Nghĩa Bắc",type:"Bãi cạn / bãi ngầm",lat:16.420278,lng:112.631389,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Bãi Quảng Nghĩa Bắc là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-046",name:"Bãi Quảng Nghĩa",type:"Bãi cạn / bãi ngầm",lat:16.326667,lng:112.683333,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Bãi Quảng Nghĩa là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-047",name:"Bãi Châu Nhai Đông",type:"Bãi cạn / bãi ngầm",lat:16.352222,lng:112.538889,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Bãi Châu Nhai Đông là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-048",name:"Đảo Tri Tôn",type:"Đảo",lat:15.785833,lng:111.197500,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Đảo Tri Tôn là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"hs-049",name:"Bãi ngầm Ốc Tai Voi",type:"Bãi cạn / bãi ngầm",lat:15.730278,lng:112.231111,group:"Hoàng Sa",admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",description:"Bãi ngầm Ốc Tai Voi là một địa danh thuộc quần đảo Hoàng Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."}
+    ];
+
+    const truongSaFeatures = [
+      {id:"ts-001",name:"Cụm Song Tử",type:"Cụm địa lý",lat:11.423333,lng:114.356667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Cụm Song Tử là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-002",name:"Đá Bắc",type:"Đá / rạn san hô",lat:11.466667,lng:114.393333,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Bắc là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-003",name:"Đảo Song Tử Đông",type:"Đảo",lat:11.453889,lng:114.353056,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đảo Song Tử Đông là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-004",name:"Đảo Song Tử Tây",type:"Đảo",lat:11.430000,lng:114.329722,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đảo Song Tử Tây là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-005",name:"Đá Nam",type:"Đá / rạn san hô",lat:11.388889,lng:114.296667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Nam là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-006",name:"Bãi Đinh Ba",type:"Bãi cạn / bãi ngầm",lat:11.501667,lng:114.646667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Bãi Đinh Ba là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-007",name:"Bãi Núi Cầu",type:"Bãi cạn / bãi ngầm",lat:11.345000,lng:114.570556,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Bãi Núi Cầu là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-008",name:"Cụm Thị Tứ",type:"Cụm địa lý",lat:11.048333,lng:114.261667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Cụm Thị Tứ là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-009",name:"Đá Vĩnh Hảo",type:"Đá / rạn san hô",lat:11.093333,lng:114.375000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Vĩnh Hảo là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-010",name:"Bãi đá Tri Lễ",type:"Bãi cạn / bãi ngầm",lat:11.061667,lng:114.221667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Bãi đá Tri Lễ là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-011",name:"Bãi đá Tri Lễ Đông",type:"Bãi cạn / bãi ngầm",lat:11.076667,lng:114.256944,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Bãi đá Tri Lễ Đông là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-012",name:"Đá Hoài Ân",type:"Đá / rạn san hô",lat:11.056111,lng:114.203333,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Hoài Ân là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-013",name:"Bãi đá Xen Đi",type:"Bãi cạn / bãi ngầm",lat:11.049722,lng:114.190556,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Bãi đá Xen Đi là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-014",name:"Đá Trâm Đức",type:"Đá / rạn san hô",lat:11.058333,lng:114.323333,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Trâm Đức là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-015",name:"Đá Trâm Đức Bắc",type:"Đá / rạn san hô",lat:11.065556,lng:114.321111,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Trâm Đức Bắc là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-016",name:"Đá Trâm Đức Nam",type:"Đá / rạn san hô",lat:11.054722,lng:114.339722,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Trâm Đức Nam là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-017",name:"Đảo Thị Tứ",type:"Đảo",lat:11.053333,lng:114.285000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đảo Thị Tứ là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-018",name:"Đá Cái Vung",type:"Đá / rạn san hô",lat:11.037778,lng:114.174167,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Cái Vung là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-019",name:"Đá An Lão",type:"Đá / rạn san hô",lat:11.151667,lng:114.798333,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá An Lão là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-020",name:"Bãi Đường",type:"Bãi cạn / bãi ngầm",lat:11.021667,lng:114.696667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Bãi Đường là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-021",name:"Đảo Bến Lạc",type:"Đảo",lat:11.082778,lng:115.021667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đảo Bến Lạc là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-022",name:"Đá Đền Cây Cỏ",type:"Đá / rạn san hô",lat:10.232222,lng:113.636389,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Đền Cây Cỏ là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-023",name:"Đá Lớn",type:"Đá / rạn san hô",lat:10.061667,lng:113.851667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Lớn là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-024",name:"Đá Xu Bi",type:"Đá / rạn san hô",lat:10.918333,lng:114.080000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Xu Bi là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-025",name:"Cụm Loại Ta",type:"Cụm địa lý",lat:10.756667,lng:114.518333,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Cụm Loại Ta là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-026",name:"Bãi Loại Ta Nam",type:"Bãi cạn / bãi ngầm",lat:10.705278,lng:114.328056,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Bãi Loại Ta Nam là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-027",name:"Đảo Loại Ta Tây",type:"Đảo",lat:10.730556,lng:114.350556,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đảo Loại Ta Tây là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-028",name:"Đảo Loại Ta",type:"Đảo",lat:10.669167,lng:114.422222,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đảo Loại Ta là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-029",name:"Đá Sa Huỳnh",type:"Đá / rạn san hô",lat:10.678333,lng:114.460000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Sa Huỳnh là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-030",name:"Đá An Nhơn Nam",type:"Đá / rạn san hô",lat:10.690000,lng:114.495000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá An Nhơn Nam là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-031",name:"Đá An Nhơn",type:"Đá / rạn san hô",lat:10.712222,lng:114.533333,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá An Nhơn là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-032",name:"Đá An Nhơn Bắc",type:"Đá / rạn san hô",lat:10.770556,lng:114.591111,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá An Nhơn Bắc là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-033",name:"Đá Cá Nhám",type:"Đá / rạn san hô",lat:10.880000,lng:114.921667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Cá Nhám là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-034",name:"Đá Tân Châu",type:"Đá / rạn san hô",lat:10.851389,lng:114.875000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Tân Châu là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-035",name:"Cụm Nam Yết",type:"Cụm địa lý",lat:10.301667,lng:114.416667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Cụm Nam Yết là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-036",name:"Đá Ga Ven",type:"Đá / rạn san hô",lat:10.211667,lng:114.223333,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Ga Ven là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-037",name:"Đá Lạc",type:"Đá / rạn san hô",lat:10.165000,lng:114.251667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Lạc là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-038",name:"Đảo Nam Yết",type:"Đảo",lat:10.180000,lng:114.365000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đảo Nam Yết là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-039",name:"Đảo Ba Bình",type:"Đảo",lat:10.378333,lng:114.364167,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đảo Ba Bình là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-040",name:"Đá Bàn Than",type:"Đá / rạn san hô",lat:10.387222,lng:114.413056,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Bàn Than là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-041",name:"Đảo Sơn Ca",type:"Đảo",lat:10.376667,lng:114.478333,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đảo Sơn Ca là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-042",name:"Đá Núi Thị",type:"Đá / rạn san hô",lat:10.411667,lng:114.585833,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Núi Thị là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-043",name:"Đá Én Đất",type:"Đá / rạn san hô",lat:10.355000,lng:114.696667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Én Đất là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-044",name:"Đá Nhỏ",type:"Đá / rạn san hô",lat:9.998611,lng:114.002500,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Nhỏ là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-045",name:"Đá Long Hải",type:"Đá / rạn san hô",lat:10.191667,lng:115.300000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Long Hải là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-046",name:"Đá Lục Giang",type:"Đá / rạn san hô",lat:10.253333,lng:115.368333,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Lục Giang là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-047",name:"Cụm Bình Nguyên",type:"Cụm địa lý",lat:10.730000,lng:115.850000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Cụm Bình Nguyên là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-048",name:"Đảo Bình Nguyên",type:"Đảo",lat:10.816667,lng:115.820556,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đảo Bình Nguyên là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-049",name:"Đảo Vĩnh Viễn",type:"Đảo",lat:10.734167,lng:115.801667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đảo Vĩnh Viễn là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-050",name:"Cụm Hải Sâm",type:"Cụm địa lý",lat:10.496667,lng:115.761667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Cụm Hải Sâm là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-051",name:"Đá Hoa",type:"Đá / rạn san hô",lat:10.535278,lng:115.729722,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Hoa là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-052",name:"Đá Triêm Đức",type:"Đá / rạn san hô",lat:10.536667,lng:115.787778,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Triêm Đức là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-053",name:"Đá Ninh Cơ",type:"Đá / rạn san hô",lat:10.500000,lng:115.705556,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Ninh Cơ là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-054",name:"Đá Hội Đức",type:"Đá / rạn san hô",lat:10.465278,lng:115.723889,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Hội Đức là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-055",name:"Đá Định Tường",type:"Đá / rạn san hô",lat:10.462222,lng:115.779167,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Định Tường là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-056",name:"Cụm Hồ Tràm",type:"Cụm địa lý",lat:10.896667,lng:116.325000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Cụm Hồ Tràm là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-057",name:"Đá Hợp Kim",type:"Đá / rạn san hô",lat:10.808333,lng:116.091667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Hợp Kim là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-058",name:"Đá Ba Cờ",type:"Đá / rạn san hô",lat:10.719167,lng:116.164444,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Ba Cờ là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-059",name:"Đá Khúc Giác",type:"Đá / rạn san hô",lat:10.618333,lng:116.171667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Khúc Giác là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-060",name:"Đá Trung Lễ",type:"Đá / rạn san hô",lat:10.965000,lng:116.421667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Trung Lễ là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-061",name:"Đá Mỏ Vịt",type:"Đá / rạn san hô",lat:10.895000,lng:116.438333,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Mỏ Vịt là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-062",name:"Cụm Đá Bắc",type:"Cụm địa lý",lat:10.828333,lng:116.675000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Cụm Đá Bắc là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-063",name:"Đá Cỏ My",type:"Đá / rạn san hô",lat:10.793889,lng:116.688611,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Cỏ My là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-064",name:"Đá Gò Già",type:"Đá / rạn san hô",lat:10.803889,lng:116.853889,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Gò Già là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-065",name:"Cụm Bãi cạn Nam",type:"Cụm địa lý",lat:10.491667,lng:116.678333,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Cụm Bãi cạn Nam là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-066",name:"Đá Chà Và",type:"Đá / rạn san hô",lat:10.551111,lng:116.931111,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Chà Và là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-067",name:"Đá Tây Nam",type:"Đá / rạn san hô",lat:10.313333,lng:116.495000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Tây Nam là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-068",name:"Đá Phật Tự",type:"Đá / rạn san hô",lat:10.125000,lng:116.141111,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Phật Tự là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-069",name:"Bãi Hải Yến",type:"Bãi cạn / bãi ngầm",lat:10.586667,lng:116.998333,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Bãi Hải Yến là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-070",name:"Đá Chữ Thập",type:"Đá / rạn san hô",lat:9.548056,lng:112.885833,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Chữ Thập là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-071",name:"Đá Núi Mon",type:"Đá / rạn san hô",lat:9.208333,lng:113.662500,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Núi Mon là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-072",name:"Cụm Sinh Tồn",type:"Cụm địa lý",lat:9.881667,lng:114.488333,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Cụm Sinh Tồn là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-073",name:"Đá Cô Lin",type:"Đá / rạn san hô",lat:9.773333,lng:114.253333,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Cô Lin là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-074",name:"Đá Gạc Ma",type:"Đá / rạn san hô",lat:9.720000,lng:114.276667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Gạc Ma là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-075",name:"Đá Tam Trung",type:"Đá / rạn san hô",lat:9.840278,lng:114.274722,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Tam Trung là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-076",name:"Đá Nghĩa Hành",type:"Đá / rạn san hô",lat:9.855000,lng:114.276667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Nghĩa Hành là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-077",name:"Đá Sơn Hà",type:"Đá / rạn san hô",lat:9.881667,lng:114.303333,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Sơn Hà là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-078",name:"Đảo Sinh Tồn",type:"Đảo",lat:9.885833,lng:114.329167,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đảo Sinh Tồn là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-079",name:"Đá Nhạn Gia",type:"Đá / rạn san hô",lat:9.898333,lng:114.343333,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Nhạn Gia là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-080",name:"Đá Bình Khê",type:"Đá / rạn san hô",lat:9.900000,lng:114.385000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Bình Khê là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-081",name:"Đá Ken Nan",type:"Đá / rạn san hô",lat:9.901667,lng:114.463889,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Ken Nan là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-082",name:"Đá Ken Nan Tây",type:"Đá / rạn san hô",lat:9.895000,lng:114.426667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Ken Nan Tây là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-083",name:"Đá Văn Nguyên",type:"Đá / rạn san hô",lat:9.835000,lng:114.455000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Văn Nguyên là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-084",name:"Đá Phúc Sỹ",type:"Đá / rạn san hô",lat:9.798056,lng:114.400833,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Phúc Sỹ là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-085",name:"Đá Len Đao",type:"Đá / rạn san hô",lat:9.778889,lng:114.371111,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Len Đao là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-086",name:"Đá Trà Khúc",type:"Đá / rạn san hô",lat:9.691667,lng:114.355000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Trà Khúc là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-087",name:"Đá Ninh Hòa",type:"Đá / rạn san hô",lat:9.850833,lng:114.489722,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Ninh Hòa là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-088",name:"Đá Vị Khê",type:"Đá / rạn san hô",lat:9.870000,lng:114.508333,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Vị Khê là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-089",name:"Đá Bia",type:"Đá / rạn san hô",lat:9.890000,lng:114.532222,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Bia là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-090",name:"Đá Tư Nghĩa",type:"Đá / rạn san hô",lat:9.913611,lng:114.495556,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Tư Nghĩa là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-091",name:"Đá Tư Nghĩa Đông",type:"Đá / rạn san hô",lat:9.918333,lng:114.515000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Tư Nghĩa Đông là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-092",name:"Đảo Sinh Tồn Đông",type:"Đảo",lat:9.903056,lng:114.562500,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đảo Sinh Tồn Đông là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-093",name:"Đá An Bình",type:"Đá / rạn san hô",lat:9.908333,lng:114.595000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá An Bình là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-094",name:"Đá Bình Sơn",type:"Đá / rạn san hô",lat:9.936667,lng:114.520000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Bình Sơn là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-095",name:"Đá Bãi Khung",type:"Đá / rạn san hô",lat:9.966667,lng:114.561667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Bãi Khung là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-096",name:"Đá Đức Hòa",type:"Đá / rạn san hô",lat:9.980000,lng:114.588333,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Đức Hòa là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-097",name:"Đá Ba Đầu",type:"Đá / rạn san hô",lat:9.988333,lng:114.650000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Ba Đầu là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-098",name:"Đá Suối Ngọc",type:"Đá / rạn san hô",lat:9.381667,lng:115.441667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Suối Ngọc là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-099",name:"Đá Vành Khăn",type:"Đá / rạn san hô",lat:9.905000,lng:115.538333,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Vành Khăn là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-100",name:"Đá Long Điền",type:"Đá / rạn san hô",lat:9.602222,lng:116.164722,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Long Điền là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-101",name:"Đá Bồ Đề",type:"Đá / rạn san hô",lat:9.520000,lng:116.358333,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Bồ Đề là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-102",name:"Đá Lát",type:"Đá / rạn san hô",lat:8.670833,lng:111.671667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Lát là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-103",name:"Đảo Trường Sa",type:"Đảo",lat:8.646667,lng:111.918333,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đảo Trường Sa là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-104",name:"Bãi đá Tây",type:"Bãi cạn / bãi ngầm",lat:8.858333,lng:112.218333,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Bãi đá Tây là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-105",name:"Đảo Trường Sa Đông",type:"Đảo",lat:8.935000,lng:112.348333,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đảo Trường Sa Đông là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-106",name:"Bãi ngầm Chim Biển",type:"Bãi cạn / bãi ngầm",lat:8.150000,lng:111.966667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Bãi ngầm Chim Biển là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-107",name:"Bãi ngầm Mỹ Hải",type:"Bãi cạn / bãi ngầm",lat:8.550000,lng:111.466667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Bãi ngầm Mỹ Hải là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-108",name:"Đá Đông",type:"Đá / rạn san hô",lat:8.828333,lng:112.596667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Đông là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-109",name:"Đá Châu Viên",type:"Đá / rạn san hô",lat:8.865000,lng:112.835000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Châu Viên là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-110",name:"Bãi đá Thuyền Chài",type:"Bãi cạn / bãi ngầm",lat:8.183333,lng:113.310000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Bãi đá Thuyền Chài là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-111",name:"Đảo Phan Vinh",type:"Đảo",lat:8.976944,lng:113.707222,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đảo Phan Vinh là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-112",name:"Bãi đá Tốc Tan",type:"Bãi cạn / bãi ngầm",lat:8.811667,lng:113.983333,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Bãi đá Tốc Tan là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-113",name:"Đá Kỳ Vân",type:"Đá / rạn san hô",lat:7.990556,lng:113.904167,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Kỳ Vân là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-114",name:"Đá Núi Le",type:"Đá / rạn san hô",lat:8.710000,lng:114.185000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Núi Le là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-115",name:"Đá Tiên Nữ",type:"Đá / rạn san hô",lat:8.855000,lng:114.655000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Tiên Nữ là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-116",name:"Đá Én Ca",type:"Đá / rạn san hô",lat:8.107222,lng:114.130000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Én Ca là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-117",name:"Cụm Thám Hiểm",type:"Cụm địa lý",lat:8.118333,lng:114.666667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Cụm Thám Hiểm là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-118",name:"Đá Sâu",type:"Đá / rạn san hô",lat:8.131667,lng:114.573056,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Sâu là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-119",name:"Đá Gia Hội",type:"Đá / rạn san hô",lat:8.181944,lng:114.706389,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Gia Hội là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-120",name:"Đá Gia Phú",type:"Đá / rạn san hô",lat:8.134722,lng:114.795833,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Gia Phú là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-121",name:"Đá Công Đo",type:"Đá / rạn san hô",lat:8.358333,lng:115.223333,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Công Đo là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-122",name:"Bãi ngầm Ngũ Phụng",type:"Bãi cạn / bãi ngầm",lat:8.450000,lng:115.160000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Bãi ngầm Ngũ Phụng là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-123",name:"Đảo An Bang",type:"Đảo",lat:7.893333,lng:112.919722,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đảo An Bang là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-124",name:"Đá Suối Cát",type:"Đá / rạn san hô",lat:7.622500,lng:113.801111,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Suối Cát là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-125",name:"Đá Kiệu Ngựa",type:"Đá / rạn san hô",lat:7.628333,lng:113.935000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Kiệu Ngựa là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-126",name:"Đá Hoa Lau",type:"Đá / rạn san hô",lat:7.375000,lng:113.827778,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Hoa Lau là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-127",name:"Bãi cạn Kiệu Ngựa",type:"Bãi cạn / bãi ngầm",lat:7.738333,lng:114.265000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Bãi cạn Kiệu Ngựa là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-128",name:"Đá Vĩnh Tường",type:"Đá / rạn san hô",lat:7.183333,lng:114.816667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Vĩnh Tường là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-129",name:"Bãi ngầm Nguyệt Xương",type:"Bãi cạn / bãi ngầm",lat:9.533333,lng:112.416667,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Bãi ngầm Nguyệt Xương là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-130",name:"Đá Vĩnh Hợp",type:"Đá / rạn san hô",lat:11.081389,lng:117.007500,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Vĩnh Hợp là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-131",name:"Đá Đồng Thanh",type:"Đá / rạn san hô",lat:11.915000,lng:116.784444,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Đồng Thanh là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."},
+      {id:"ts-132",name:"Đá Sác Lốt",type:"Đá / rạn san hô",lat:6.941667,lng:113.575000,group:"Trường Sa",admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",description:"Đá Sác Lốt là một địa danh thuộc quần đảo Trường Sa. Tọa độ được chuyển từ danh mục địa danh kèm Thông tư 33/2024/TT-BTNMT sang độ thập phân để định vị trên bản đồ."}
+    ];
+
+    const marinePoints = [
+      ...otherIslands.map(p => ({...p, group:"Đảo ven bờ", type:"Đảo / quần đảo", description:p.summary || "Đảo và quần đảo tiêu biểu của Việt Nam."})),
+      ...hoangSaFeatures,
+      ...truongSaFeatures
+    ];
+    const archipelagoGroups = {
+      "Hoàng Sa": {
+        id:"hoang-sa-group", name:"Quần đảo Hoàng Sa", short:"HOÀNG SA", count:49,
+        lat:16.48,lng:112.13, color:"#b8792b", className:"hs", admin:"Đặc khu Hoàng Sa · Thành phố Đà Nẵng",
+        description:"Danh mục bản đồ hiển thị 49 địa danh có tọa độ trong phụ lục Thông tư 33/2024/TT-BTNMT, gồm đảo, đá, cụm địa lý, bãi cạn và bãi ngầm. Tọa độ dùng để định vị tham khảo trên bản đồ web."
+      },
+      "Trường Sa": {
+        id:"truong-sa-group", name:"Quần đảo Trường Sa", short:"TRƯỜNG SA", count:132,
+        lat:9.65,lng:114.25, color:"#167b69", className:"ts", admin:"Đặc khu Trường Sa · Tỉnh Khánh Hòa",
+        description:"Danh mục bản đồ hiển thị 132 địa danh có tọa độ trong phụ lục Thông tư 33/2024/TT-BTNMT, gồm đảo, đá, cụm địa lý, bãi cạn và bãi ngầm. Tọa độ dùng để định vị tham khảo trên bản đồ web."
+      }
+    };
+
+
+
+    let marineMarkers = new Map();
+    let archipelagoMarkers = new Map();
+    let selectedMarineId = null;
+    let activeMarineGroup = null;
+
+    function marineColor(item) {
+      if (item.group === "Hoàng Sa") return "#c38a3a";
+      if (item.group === "Trường Sa") return "#16816d";
+      return "#2d7db5";
+    }
+
+    function addMarineMarkers() {
+      if (!map) return;
+      marinePoints.forEach(item => {
+        const marker = L.circleMarker([item.lat, item.lng], {
+          radius: item.group === "Hoàng Sa" || item.group === "Trường Sa" ? 5 : 5.5,
+          color:"#ffffff", weight:1.8, fillColor:marineColor(item), fillOpacity:.98,
+          bubblingMouseEvents:false
+        });
+        marker.bindTooltip(escapeHtml(item.name), {direction:"top", className:"marine-tooltip", opacity:.98, sticky:true});
+        marker.bindPopup(`<div class="marine-popup"><strong>${escapeHtml(item.name)}</strong><br><small>${escapeHtml(item.group === "Hoàng Sa" ? "Quần đảo Hoàng Sa" : item.group === "Trường Sa" ? "Quần đảo Trường Sa" : item.admin)}</small><br><small>${escapeHtml(item.type || "Đảo / quần đảo")}</small></div>`);
+        marker.on("click", () => selectMarinePoint(item, false));
+        marineMarkers.set(item.id, marker);
+        if (item.group === "Đảo ven bờ") marker.addTo(map);
+      });
+
+      Object.entries(archipelagoGroups).forEach(([groupName, group]) => {
+        const icon = L.divIcon({
+          className:"archipelago-icon-shell",
+          html:`<div class="archipelago-label ${group.className}">${group.short}<small>${group.count} địa danh · nhấn để phóng to</small></div>`,
+          iconSize:[150,48], iconAnchor:[75,24]
+        });
+        const marker = L.marker([group.lat,group.lng], {icon, keyboard:true, riseOnHover:true, zIndexOffset:1300}).addTo(map);
+        marker.bindTooltip(group.name, {direction:"top", className:"marine-tooltip"});
+        marker.on("click", () => {
+          activeMarineGroup = groupName;
+          renderMarineGroup(groupName);
+          updateMarineVisibility();
+          const features = marinePoints.filter(p => p.group === groupName);
+          const bounds = L.latLngBounds(features.map(p => [p.lat,p.lng]));
+          if (bounds.isValid()) map.flyToBounds(bounds, {padding:[52,52], maxZoom: groupName === "Hoàng Sa" ? 8.0 : 6.6, duration:.85});
+        });
+        archipelagoMarkers.set(groupName, marker);
+      });
+
+      map.on("zoomend", updateMarineVisibility);
+      updateMarineVisibility();
+    }
+
+    function updateMarineVisibility() {
+      if (!map) return;
+      const detailed = map.getZoom() >= 7.0;
+      marinePoints.forEach(item => {
+        if (item.group !== "Hoàng Sa" && item.group !== "Trường Sa") return;
+        const marker = marineMarkers.get(item.id);
+        if (!marker) return;
+        const visible = detailed || activeMarineGroup === item.group;
+        if (visible && !map.hasLayer(marker)) marker.addTo(map);
+        if (!visible && map.hasLayer(marker)) map.removeLayer(marker);
+      });
+      archipelagoMarkers.forEach((marker, groupName) => {
+        const groupIsVisible = map.getZoom() < 7.0 && activeMarineGroup !== groupName;
+        if (groupIsVisible && !map.hasLayer(marker)) marker.addTo(map);
+        if (!groupIsVisible && map.hasLayer(marker)) map.removeLayer(marker);
+      });
+    }
+
+    function renderMarineGroup(groupName) {
+      provincePhotoRequestId++;
+      const group = archipelagoGroups[groupName];
+      const panel = document.getElementById("detailPanel");
+      const names = marinePoints.filter(p => p.group === groupName).map(p => `<button type="button" data-marine-id="${escapeHtml(p.id)}">${escapeHtml(p.name)}</button>`).join("");
+      panel.innerHTML = `
+        <div class="detail-kicker"><span class="tag">QUẦN ĐẢO XA BỜ</span><span class="detail-code">${group.count} MỐC ĐỊNH VỊ</span></div>
+        <h2>${escapeHtml(group.name)}</h2>
+        <div class="detail-region">${escapeHtml(group.admin)}</div>
+        <p class="detail-desc">${escapeHtml(group.description)}</p>
+        <div class="detail-grid">
+          <div class="detail-metric"><small>Số mốc trong lớp bản đồ</small><strong>${group.count} địa danh</strong></div>
+          <div class="detail-metric"><small>Vị trí</small><strong>Biển Đông</strong></div>
+        </div>
+        <div class="detail-section"><label>Danh sách địa danh được đánh dấu</label><div class="detail-list-chips">${names}</div></div>
+        <p class="marine-note">Chọn một địa danh trong danh sách hoặc một chấm màu trên bản đồ để xem tọa độ và thông tin.</p>
+        <button class="marine-back" id="backToProvinceDetails" type="button">↩ Quay lại thông tin tỉnh, thành</button>`;
+      document.getElementById("backToProvinceDetails").addEventListener("click", restoreProvinceDetails);
+      panel.querySelectorAll("[data-marine-id]").forEach(button => {
+        button.addEventListener("click", () => {
+          const point = marinePoints.find(p => p.id === button.dataset.marineId);
+          if (!point) return;
+          selectMarinePoint(point);
+          map.flyTo([point.lat, point.lng], 9.0, {animate:true, duration:.6});
+        });
+      });
+    }
+
+    function renderMarineDetail(item) {
+      provincePhotoRequestId++;
+      selectedMarineId = item.id;
+      activeMarineGroup = (item.group === "Hoàng Sa" || item.group === "Trường Sa") ? item.group : null;
+      updateMarineVisibility();
+      const panel = document.getElementById("detailPanel");
+      const groupLabel = item.group === "Hoàng Sa" ? "QUẦN ĐẢO HOÀNG SA" : item.group === "Trường Sa" ? "QUẦN ĐẢO TRƯỜNG SA" : "ĐẢO / QUẦN ĐẢO VEN BỜ";
+      const latText = `${item.lat.toFixed(4)}°B`;
+      const lngText = `${item.lng.toFixed(4)}°Đ`;
+      const note = item.description || item.summary || "Địa danh biển đảo tiêu biểu của Việt Nam.";
+      panel.innerHTML = `
+        <div class="detail-kicker"><span class="tag">${groupLabel}</span><span class="detail-code">${escapeHtml(item.type || "Đảo")}</span></div>
+        <h2>${escapeHtml(item.name)}</h2>
+        <div class="detail-region">${escapeHtml(item.admin || (item.group === "Hoàng Sa" ? archipelagoGroups["Hoàng Sa"].admin : archipelagoGroups["Trường Sa"].admin))}</div>
+        <p class="detail-desc">${escapeHtml(note)}</p>
+        <div class="detail-grid">
+          <div class="detail-metric"><small>Vĩ độ Bắc</small><strong>${latText}</strong></div>
+          <div class="detail-metric"><small>Kinh độ Đông</small><strong>${lngText}</strong></div>
+        </div>
+        <div class="detail-section"><label>Nhóm địa lý</label><p>${escapeHtml(item.group === "Hoàng Sa" ? "Quần đảo Hoàng Sa" : item.group === "Trường Sa" ? "Quần đảo Trường Sa" : "Đảo / quần đảo ven bờ Việt Nam")}</p></div>
+        ${item.highlights ? `<div class="detail-section"><label>Địa danh nổi bật</label><p>${escapeHtml(item.highlights)}</p></div>` : ""}
+        ${item.culture ? `<div class="detail-section"><label>Văn hóa – đặc trưng</label><p>${escapeHtml(item.culture)}</p></div>` : ""}
+        ${item.history ? `<div class="detail-section"><label>Dấu ấn lịch sử</label><p>${escapeHtml(item.history)}</p></div>` : ""}
+        <p class="marine-note">Tọa độ dùng để định vị khái quát, không thay thế hải đồ chuyên ngành.</p>
+        <button class="marine-back" id="backToProvinceDetails" type="button">↩ ${(item.group === "Hoàng Sa" || item.group === "Trường Sa") ? "Quay lại danh sách " + item.group : "Quay lại thông tin tỉnh, thành"}</button>`;
+      document.getElementById("backToProvinceDetails").addEventListener("click", () => {
+        if (item.group === "Hoàng Sa" || item.group === "Trường Sa") renderMarineGroup(item.group);
+        else restoreProvinceDetails();
+      });
+
+      marineMarkers.forEach((marker, id) => {
+        const feature = marinePoints.find(p => p.id === id);
+        const active = id === item.id;
+        marker.setStyle({radius:active ? 8 : (feature && (feature.group === "Hoàng Sa" || feature.group === "Trường Sa") ? 5 : 5.5), weight:active ? 3 : 1.8});
+      });
+    }
+
+    function selectMarinePoint(item) {
+      renderMarineDetail(item);
+    }
+
+    function restoreProvinceDetails() {
+      selectedMarineId = null;
+      activeMarineGroup = null;
+      updateMarineVisibility();
+      marineMarkers.forEach((marker, id) => {
+        const feature = marinePoints.find(p => p.id === id);
+        marker.setStyle({radius:feature && (feature.group === "Hoàng Sa" || feature.group === "Trường Sa") ? 5 : 5.5, weight:1.8});
+      });
+      if (selectedName) {
+        const province = provinces.find(p => p.name === selectedName);
+        if (province) return renderDetail(province);
+      }
+      document.getElementById("detailPanel").innerHTML = `<div class="initial-state"><div class="pin">⌖</div><strong>Chọn một tỉnh, thành phố</strong><span>Nhấn vào tỉnh, thành hoặc điểm đảo trên bản đồ để xem thông tin.</span></div>`;
+    }
+
+    function initMap() {
+      map = L.map("map", { zoomControl: false, scrollWheelZoom: true, preferCanvas: true, minZoom: 4, maxZoom: 11 });
+      L.control.zoom({ position: "topright" }).addTo(map);
+      L.control.attribution({ position: "bottomright", prefix: false })
+        .addAttribution('Ranh giới hành chính · Vietnam GIS Data')
+        .addTo(map);
+      // Không dùng raster tiles của OpenStreetMap: tránh máy chủ trả về trang 403/Access blocked.
+      // Lớp GeoJSON tỉnh/thành và các điểm đảo vẫn hiển thị trực tiếp trên nền biển CSS ở trên.
+      map.setView([15.7, 108.3], 5.1);
+      document.getElementById("resetMap").addEventListener("click", fitVietnam);
+      document.getElementById("zoomIn").addEventListener("click", () => map.zoomIn());
+      document.getElementById("zoomOut").addEventListener("click", () => map.zoomOut());
+      addMarineMarkers();
+      setTimeout(() => { if (map) { fitVietnam(); map.invalidateSize(true); } }, 250);
+      window.addEventListener("resize", () => map && map.invalidateSize());
+    }
+
+    function provinceFill(p) {
+      if (!p) return palette[0];
+      if (p.name === "Hà Nội") return "#7745A8"; // Thủ đô: tím riêng
+      if (p.type === "Thành phố") return "#3183C8"; // 5 thành phố trực thuộc TW: xanh lam
+      const idx = provinces.findIndex(x => x.name === p.name);
+      return palette[(idx < 0 ? 0 : idx) % palette.length];
+    }
+    function styleFeature(feature) {
+      const p = findProvinceFromProperties(feature.properties);
+      const isSelected = p && selectedName === p.name;
+      return {
+        color: isSelected ? "#F0A43B" : "#ffffff",
+        weight: isSelected ? 3.5 : 1.45,
+        opacity: 1,
+        fillColor: provinceFill(p),
+        fillOpacity: isSelected ? 1 : .93,
+        lineJoin: "round"
+      };
+    }
+
+    function onEachFeature(feature, layer) {
+      const p = findProvinceFromProperties(feature.properties);
+      const displayName = p ? p.name : getRawName(feature.properties);
+      layer.bindTooltip(displayName || "Địa giới hành chính", { sticky: true, direction: "top", className: "province-tooltip", opacity: .98 });
+      layer.on({
+        mouseover: () => {
+          layer.setStyle({ color: "#E89B35", weight: 3, fillColor: provinceFill(p), fillOpacity: 1 });
+          if (layer.bringToFront) layer.bringToFront();
+        },
+        mouseout: () => geoLayer && geoLayer.resetStyle(layer),
+        click: () => {
+          if (p) selectProvince(p.name, true);
+          else showUnmatchedFeature(displayName, feature.properties);
+        }
+      });
+    }
+
+    function getRawName(props) {
+      if (!props) return "";
+      const keys = ["ten_tinh","TEN_TINH","Ten_Tinh","name","NAME_1","Name","province","PROVINCE","ten","TEN"];
+      for (const k of keys) if (props[k] !== undefined) return String(props[k]);
+      return Object.values(props).find(v => typeof v === "string") || "";
+    }
+
+    function showUnmatchedFeature(rawName, props) {
+      provincePhotoRequestId++;
+      const panel = document.getElementById("detailPanel");
+      panel.innerHTML = `<div class="detail-kicker"><span class="tag">ĐỊA GIỚI TRÊN BẢN ĐỒ</span></div><h2>${escapeHtml(rawName || "Địa phương")}</h2><p class="detail-desc">Tên thuộc tính bản đồ chưa khớp với danh sách địa phương. Bạn có thể kiểm tra trường dữ liệu GeoJSON để bổ sung ánh xạ tên.</p><div class="detail-section"><label>Thuộc tính dữ liệu</label><p>${escapeHtml(JSON.stringify(props || {}))}</p></div>`;
+    }
+    function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;", "'":"&#39;"}[c])); }
+
+    function renderList() {
+      const list = document.getElementById("provinceList");
+      const filtered = provinces.filter(p => {
+        const matchesSearch = normalize(p.name + " " + (p.merged || []).join(" ")).includes(normalize(currentSearch));
+        const matchesType = currentFilter === "all" || p.type === currentFilter;
+        return matchesSearch && matchesType;
+      }).sort((a,b) => a.name.localeCompare(b.name, "vi"));
+      document.getElementById("visibleCount").textContent = filtered.length;
+      if (!filtered.length) {
+        list.innerHTML = '<div class="empty-list">Không tìm thấy địa phương phù hợp.</div>';
+        return;
+      }
+      list.innerHTML = filtered.map((p, i) => `
+        <button class="province-item ${selectedName === p.name ? "active" : ""}" data-name="${escapeHtml(p.name)}">
+          <span class="province-dot" style="background:${provinceFill(p)}"></span>
+          <span class="province-name">${escapeHtml(p.name)}</span>
+          <span class="province-type">${p.type === "Thành phố" ? "TP" : "Tỉnh"}</span>
+        </button>`).join("");
+      list.querySelectorAll(".province-item").forEach(btn => btn.addEventListener("click", () => selectProvince(btn.dataset.name, true)));
+    }
+
+    // Ảnh địa phương được tìm theo địa danh tiêu biểu trên Wikimedia Commons.
+    // API dùng origin=* để cho phép trang HTML mở trực tiếp bằng file:// mà vẫn gọi CORS.
+    let provincePhotoRequestId = 0;
+    const provincePhotoCache = new Map();
+
+    // Ảnh được tìm theo lễ hội đặc trưng của từng địa phương (không tìm ảnh phong cảnh chung).
+    // Mỗi địa phương có nhiều biến thể tên để tăng khả năng tìm thấy ảnh tư liệu trên Commons.
+    const festivalPhotoQueries = {
+      "An Giang":["Via Ba Chua Xu Nui Sam festival Chau Doc", "Lễ hội Vía Bà Chúa Xứ Núi Sam"],
+      "Bắc Ninh":["Hoi Lim Quan Ho festival Bac Ninh", "Hội Lim Bắc Ninh"],
+      "Cà Mau":["Nghinh Ong Song Doc festival Ca Mau", "Lễ hội Nghinh Ông Sông Đốc"],
+      "Cao Bằng":["Long Tong festival Cao Bang Vietnam", "Lễ hội Lồng Tồng Cao Bằng"],
+      "Cần Thơ":["Oc Om Boc Ngo Boat Race festival Soc Trang", "Lễ hội Ooc Om Boc đua ghe Ngo Sóc Trăng"],
+      "Đà Nẵng":["Quan The Am festival Da Nang", "Lễ hội Quán Thế Âm Đà Nẵng"],
+      "Đắk Lắk":["Buon Ma Thuot Coffee Festival", "Lễ hội Cà phê Buôn Ma Thuột"],
+      "Điện Biên":["Ban Flower Festival Dien Bien Vietnam", "Lễ hội Hoa Ban Điện Biên"],
+      "Đồng Nai":["Sayangva Cho Ro festival Dong Nai", "Lễ hội Sayangva người Chơ Ro"],
+      "Đồng Tháp":["Go Thap festival Dong Thap Vietnam", "Lễ hội Gò Tháp Đồng Tháp"],
+      "Gia Lai":["Dong Da Tay Son festival Binh Dinh", "Lễ hội Đống Đa Tây Sơn Bình Định"],
+      "Hà Nội":["Giong festival Hanoi Vietnam", "Lễ hội Gióng Hà Nội"],
+      "Hà Tĩnh":["Hai Thuong Lan Ong festival Ha Tinh", "Lễ hội Hải Thượng Lãn Ông Hà Tĩnh"],
+      "Hải Phòng":["Do Son Buffalo Fighting Festival Hai Phong", "Lễ hội chọi trâu Đồ Sơn"],
+      "Huế":["Le hoi Dien Hue Nam Hue Vietnam procession boats", "Lễ hội Điện Huệ Nam Điện Hòn Chén Huế"],
+      "Hưng Yên":["Chu Dong Tu Tien Dung festival Hung Yen", "Lễ hội Chử Đồng Tử Tiên Dung"],
+      "Khánh Hòa":["Ponagar Tower festival Nha Trang", "Lễ hội Tháp Bà Ponagar"],
+      "Lai Châu":["Then Kin Pang festival Lai Chau", "Lễ hội Then Kin Pang"],
+      "Lâm Đồng":["Kate festival Cham Po Klong Garai Vietnam", "Lễ hội Katê người Chăm tháp Po Klong Garai"],
+      "Lạng Sơn":["Ky Cung Ta Phu festival Lang Son", "Lễ hội Kỳ Cùng Tả Phủ Lạng Sơn"],
+      "Lào Cai":["Gau Tao festival Lao Cai Vietnam", "Lễ hội Gầu Tào Lào Cai"],
+      "Nghệ An":["Sen Village Festival Nghe An", "Lễ hội Làng Sen Nghệ An"],
+      "Ninh Bình":["Hoa Lu Festival Ninh Binh", "Lễ hội Hoa Lư Ninh Bình"],
+      "Phú Thọ":["Hung Kings Temple Festival Phu Tho", "Giỗ Tổ Hùng Vương lễ hội Đền Hùng"],
+      "Quảng Ngãi":["Hoang Sa soldier commemoration festival Ly Son", "Lễ khao lề thế lính Hoàng Sa"],
+      "Quảng Ninh":["Yen Tu festival Quang Ninh Vietnam", "Lễ hội Yên Tử Quảng Ninh"],
+      "Quảng Trị":["La Vang pilgrimage festival Quang Tri", "Lễ hội hành hương La Vang Quảng Trị"],
+      "Sơn La":["Het Cha festival Moc Chau Son La", "Lễ hội Hết Chá Sơn La"],
+      "Tây Ninh":["Ba Den Mountain spring festival Tay Ninh", "Hội Xuân Núi Bà Đen Tây Ninh"],
+      "Thái Nguyên":["Long Tong festival Thai Nguyen Vietnam", "Lễ hội Lồng Tồng Thái Nguyên"],
+      "Thanh Hóa":["Lam Kinh festival Thanh Hoa Vietnam", "Lễ hội Lam Kinh Thanh Hóa"],
+      "Thành phố Hồ Chí Minh":["Nguyen Tieu festival Cho Lon Ho Chi Minh City", "Lễ hội Nguyên Tiêu Chợ Lớn"],
+      "Tuyên Quang":["Thanh Tuyen festival Tuyen Quang lantern", "Lễ hội Thành Tuyên"],
+      "Vĩnh Long":["Nghinh Ong Nam Hai Binh Dai festival Vietnam", "Lễ hội Nghinh Ông Nam Hải Bình Đại"]
+    };
+
+    function getFestivalTitle(p) {
+      const festivalText = (cultureData[p.name] && cultureData[p.name].festival) || "";
+      const first = festivalText.split(/[;；]/)[0].trim();
+      return first || `Lễ hội truyền thống ${p.name}`;
+    }
+
+    function plainMetadata(value) {
+      return String(value || "").replace(/<[^>]*>/g, " ")
+        .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&")
+        .replace(/&#39;|&apos;/g, "'").replace(/&quot;/g, '"')
+        .replace(/\s+/g, " ").trim();
+    }
+
+    async function searchCommonsPhoto(term) {
+      const params = new URLSearchParams({
+        action: "query", generator: "search",
+        gsrsearch: `${term} filetype:bitmap`, gsrnamespace: "6", gsrlimit: "12",
+        prop: "imageinfo", iiprop: "url|extmetadata", iiurlwidth: "1400",
+        iiextmetadatafilter: "LicenseShortName|Artist", format: "json", origin: "*"
+      });
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+      try {
+        const response = await fetch(`https://commons.wikimedia.org/w/api.php?${params.toString()}`, {
+          mode:"cors", signal:controller.signal, headers:{"Accept":"application/json"}
+        });
+        if (!response.ok) throw new Error(`Wikimedia Commons HTTP ${response.status}`);
+        const data = await response.json();
+        const pages = Object.values((data.query && data.query.pages) || {});
+        const excluded = /(logo|map|flag|coat of arms|icon|symbol|bản đồ|quốc kỳ|huy hiệu|poster|banner|poster quảng cáo)/i;
+        for (const page of pages) {
+          if (!page.title || excluded.test(page.title)) continue;
+          const info = page.imageinfo && page.imageinfo[0];
+          const src = info && (info.thumburl || info.url);
+          if (!src || !/^https:\/\//i.test(src)) continue;
+          return {
+            src,
+            page: info.descriptionurl || `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title.replace(/ /g, "_"))}`,
+            title: page.title.replace(/^File:/i, ""),
+            artist: plainMetadata(info.extmetadata && info.extmetadata.Artist && info.extmetadata.Artist.value),
+            license: plainMetadata(info.extmetadata && info.extmetadata.LicenseShortName && info.extmetadata.LicenseShortName.value)
+          };
+        }
+        return null;
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    async function loadProvincePhoto(p) {
+      const requestId = ++provincePhotoRequestId;
+      const img = document.getElementById("provincePhotoImage");
+      const fallback = document.getElementById("provincePhotoFallback");
+      const status = document.getElementById("provincePhotoStatus");
+      const credit = document.getElementById("provincePhotoCredit");
+      const label = document.getElementById("provincePhotoLabel");
+      const titleNode = document.getElementById("provincePhotoTitle");
+      if (!img || !fallback || !status || !credit) return;
+
+      const festivalTitle = getFestivalTitle(p);
+      if (fallback) {
+        fallback.hidden = false;
+        fallback.querySelector("strong").textContent = festivalTitle;
+      }
+      if (titleNode) titleNode.textContent = festivalTitle;
+      img.hidden = true;
+      credit.hidden = true;
+      if (label) label.hidden = true;
+      status.hidden = false;
+      status.textContent = `Đang tìm ảnh lễ hội “${festivalTitle}”…`;
+
+      const mappedTerms = festivalPhotoQueries[p.name] || [];
+      const terms = [...new Set([
+        ...mappedTerms,
+        `${festivalTitle} Vietnam festival`,
+        `${festivalTitle} ${p.name} festival`
+      ])];
+      let found = provincePhotoCache.get(p.name) || null;
+      if (!found) {
+        for (const term of terms) {
+          try {
+            found = await searchCommonsPhoto(term);
+            if (found) break;
+          } catch (err) {
+            console.warn(`Không tải được ảnh lễ hội của ${p.name}:`, err);
+          }
+          if (requestId !== provincePhotoRequestId) return;
+        }
+      }
+      if (requestId !== provincePhotoRequestId || !document.getElementById("provincePhotoImage")) return;
+
+      if (!found) {
+        status.textContent = `Chưa tìm thấy ảnh lễ hội phù hợp cho ${p.name}. Thông tin lễ hội vẫn được hiển thị bên dưới.`;
+        return;
+      }
+      provincePhotoCache.set(p.name, found);
+      img.alt = `Ảnh lễ hội ${festivalTitle} tại ${p.name}: ${found.title}`;
+      img.onload = () => {
+        if (requestId !== provincePhotoRequestId) return;
+        img.hidden = false;
+        fallback.hidden = true;
+        status.hidden = true;
+        if (label) label.hidden = false;
+        const attribution = [found.artist, found.license].filter(Boolean).join(" · ");
+        credit.innerHTML = `Lễ hội: ${escapeHtml(festivalTitle)} · Ảnh: ${escapeHtml(found.title)}${attribution ? ` · ${escapeHtml(attribution)}` : ""} · <a href="${escapeHtml(found.page)}" target="_blank" rel="noopener noreferrer">Nguồn ảnh: Wikimedia Commons</a>`;
+        credit.hidden = false;
+      };
+      img.onerror = () => {
+        if (requestId !== provincePhotoRequestId) return;
+        img.hidden = true;
+        fallback.hidden = false;
+        if (label) label.hidden = true;
+        status.hidden = false;
+        status.textContent = `Ảnh lễ hội hiện không tải được. Bạn vẫn có thể xem thông tin về ${festivalTitle} bên dưới.`;
+      };
+      img.src = found.src;
+    }
+
+    function renderDetail(p) {
+      const panel = document.getElementById("detailPanel");
+      const merged = p.merged ? p.merged.join(" · ") : "Giữ nguyên địa giới cấp tỉnh trong đợt sắp xếp năm 2025";
+      const statArea = p.area ? `<div class="detail-metric"><small>Diện tích tự nhiên</small><strong>${fmtNumber(p.area)} km²</strong></div>` : `<div class="detail-metric"><small>Tình trạng 2025</small><strong>Giữ nguyên</strong></div>`;
+      const statPop = p.population ? `<div class="detail-metric"><small>Quy mô dân số</small><strong>${fmtNumber(p.population)} người</strong></div>` : `<div class="detail-metric"><small>Loại đơn vị</small><strong>${p.type}</strong></div>`;
+      const badges = p.highlights.map(h => `<span class="landmark-chip">${escapeHtml(h)}</span>`).join("");
+      const culture = cultureData[p.name] || {};
+      const festival = festivalDetails[p.name] || null;
+      const adminBadge = p.name === "Hà Nội" ? "THỦ ĐÔ" : p.type.toUpperCase();
+      const cultureBlock = (icon, title, value) => value ? `<div class="culture-section"><div class="culture-icon">${icon}</div><div><h3>${title}</h3><p>${escapeHtml(value)}</p></div></div>` : "";
+      const festivalBlock = festival ? `
+        <div class="festival-detail-card">
+          <div class="festival-detail-title"><span>Lễ hội tiêu biểu · ${escapeHtml(p.name)}</span><strong>${escapeHtml(festival.title)}</strong></div>
+          <div class="festival-detail-row"><b>📜 Hình thành từ khi nào?</b><p>${escapeHtml(festival.origin)}</p></div>
+          <div class="festival-detail-row"><b>📅 Thời gian tổ chức</b><p>${escapeHtml(festival.time)}</p></div>
+          <div class="festival-detail-row"><b>🎎 Lễ hội có những gì?</b><p>${escapeHtml(festival.activities)}</p></div>
+          ${festival.extra ? `<div class="festival-extra">${escapeHtml(festival.extra)}</div>` : ""}
+          <div class="festival-sources">${(festival.sources || []).map(item => `<a href="${escapeHtml(item[1])}" target="_blank" rel="noopener noreferrer">${escapeHtml(item[0])} ↗</a>`).join("")}</div>
+        </div>` : "";
+      panel.innerHTML = `
+        <div class="detail-kicker"><span class="tag">${adminBadge}</span><span class="detail-code">${p.merged ? "HÌNH THÀNH SAU SẮP XẾP" : "ĐỊA GIỚI GIỮ NGUYÊN"}</span></div>
+        <h2>${escapeHtml(p.name)}</h2>
+        <div class="detail-region">${escapeHtml(getTypeLabel(p))} · ${escapeHtml(p.region)}</div>
+        <p class="detail-desc">${escapeHtml(p.note)}</p>
+        <div class="province-photo-card" id="provincePhotoCard">
+          <div class="province-photo-fallback" id="provincePhotoFallback">
+            <span>ẢNH LỄ HỘI TRUYỀN THỐNG</span>
+            <strong>${escapeHtml(getFestivalTitle(p))}</strong>
+          </div>
+          <img id="provincePhotoImage" alt="Ảnh lễ hội truyền thống tại ${escapeHtml(p.name)}" loading="eager" decoding="async" hidden />
+          <div class="province-photo-label" id="provincePhotoLabel" hidden>
+            <span>ẢNH LỄ HỘI TRUYỀN THỐNG</span>
+            <strong id="provincePhotoTitle">${escapeHtml(getFestivalTitle(p))}</strong>
+          </div>
+          <div class="province-photo-status" id="provincePhotoStatus">Đang tìm ảnh lễ hội truyền thống cho ${escapeHtml(p.name)}…</div>
+          <div class="province-photo-credit" id="provincePhotoCredit" hidden></div>
+        </div>
+        <div class="detail-grid">${statArea}${statPop}</div>
+        <div class="detail-section"><label>Hình thành từ</label><p>${escapeHtml(merged)}</p></div>
+        <div class="detail-section"><label>Địa danh và điểm đến tiêu biểu</label><div>${badges}</div></div>
+        <div class="culture-heading">Tìm hiểu lễ hội và văn hóa địa phương</div>
+        ${festivalBlock}
+        ${cultureBlock("✦", "Đặc sản ẩm thực", culture.food)}
+        ${cultureBlock("⌂", "Dấu ấn lịch sử", culture.history)}
+        <div class="culture-note">Thông tin mang tính giới thiệu, chọn lọc từ các vùng hợp thành đơn vị hành chính mới; không phải danh mục đầy đủ.</div>
+      `;
+      loadProvincePhoto(p);
+    }
+
+    const provinceCenters = {
+      "An Giang":[10.38,105.43], "Bắc Ninh":[21.18,106.07], "Cà Mau":[9.18,105.15],
+      "Cao Bằng":[22.67,106.25], "Cần Thơ":[10.03,105.78], "Đà Nẵng":[16.05,108.21],
+      "Đắk Lắk":[12.68,108.05], "Điện Biên":[21.38,103.02], "Đồng Nai":[10.95,106.82],
+      "Đồng Tháp":[10.36,106.36], "Gia Lai":[13.98,108.00], "Hà Nội":[21.03,105.85],
+      "Hà Tĩnh":[18.34,105.90], "Hải Phòng":[20.85,106.68], "Huế":[16.46,107.59],
+      "Hưng Yên":[20.65,106.05], "Khánh Hòa":[12.25,109.19], "Lai Châu":[22.39,103.45],
+      "Lâm Đồng":[11.94,108.44], "Lạng Sơn":[21.85,106.76], "Lào Cai":[22.48,103.97],
+      "Nghệ An":[18.68,105.68], "Ninh Bình":[20.25,105.97], "Phú Thọ":[21.30,105.40],
+      "Quảng Ngãi":[15.12,108.80], "Quảng Ninh":[20.95,107.08], "Quảng Trị":[16.74,107.18],
+      "Sơn La":[21.32,103.91], "Tây Ninh":[11.31,106.10], "Thái Nguyên":[21.60,105.85],
+      "Thanh Hóa":[19.80,105.78], "Thành phố Hồ Chí Minh":[10.78,106.70],
+      "Tuyên Quang":[21.82,105.22], "Vĩnh Long":[10.25,105.95]
+    };
+
+    function selectProvince(name, zoomTo) {
+      const p = provinces.find(x => x.name === name);
+      if (!p) return;
+      activeMarineGroup = null;
+      if (map) updateMarineVisibility();
+      selectedMarineId = null;
+      selectedName = name;
+      marineMarkers.forEach((marker, id) => {
+        const feature = marinePoints.find(x => x.id === id);
+        marker.setStyle({radius:feature && (feature.group === "Hoàng Sa" || feature.group === "Trường Sa") ? 5 : 5.5, weight:1.8});
+      });
+      renderDetail(p);
+      renderList();
+      if (geoLayer) geoLayer.setStyle(styleFeature);
+      if (zoomTo && map) {
+        // Zoom đến trung tâm đô thị đại diện thay vì fit toàn bộ multipolygon;
+        // nhờ vậy Hoàng Sa/Trường Sa không làm đất liền bị thu nhỏ khi chọn Đà Nẵng/Khanh Hòa.
+        const center = provinceCenters[name];
+        if (center) map.flyTo(center, name === "Hà Nội" ? 7.4 : 7.0, { animate:true, duration:.65 });
+        else {
+          const target = [];
+          if (geoLayer) geoLayer.eachLayer(layer => {
+            const match = findProvinceFromProperties(layer.feature && layer.feature.properties);
+            if (match && match.name === name && layer.getBounds) target.push(layer.getBounds());
+          });
+          if (target.length) {
+            const bounds = target.reduce((acc,b) => acc ? acc.extend(b) : b, null);
+            map.fitBounds(bounds, { padding:[45,45], maxZoom:7.2, animate:true, duration:.65 });
+          }
+        }
+      }
+    }
+
+    function fitVietnam() {
+      // Khung toàn quốc bao gồm đất liền, các đảo ven bờ và toàn bộ dải tọa độ
+      // Hoàng Sa – Trường Sa trong danh mục địa danh của Thông tư 33/2024/TT-BTNMT.
+      activeMarineGroup = null;
+      if (map) updateMarineVisibility();
+      const nationalBounds = L.latLngBounds([[6.7,101.8],[23.6,117.3]]);
+      if (map) map.fitBounds(nationalBounds, { padding:[22,22], animate:true, duration:.6 });
+      if (map) setTimeout(() => map.invalidateSize(true), 180);
+    }
+
+    async function loadGeoJSON() {
+      const loader = document.getElementById("mapLoader");
+      let data = null;
+      let lastError = null;
+      for (const url of GEOJSON_URLS) {
+        try {
+          const response = await fetch(url, { cache:"no-cache", mode:"cors" });
+          if (!response.ok) throw new Error("HTTP " + response.status);
+          const candidate = await response.json();
+          if (!candidate || !Array.isArray(candidate.features)) throw new Error("Dữ liệu không đúng định dạng GeoJSON");
+          data = candidate;
+          break;
+        } catch (error) {
+          lastError = error;
+          console.warn("Không tải được nguồn bản đồ:", url, error);
+        }
+      }
+      if (!data) {
+        loader.innerHTML = `<div style="font-size:28px">ⓘ</div><div class="loader-main">Chưa tải được ranh giới bản đồ</div><div class="loader-sub">${escapeHtml(lastError ? lastError.message : "Lỗi kết nối dữ liệu")}<br><br>Danh sách 34 tỉnh, thành cùng các mốc Hoàng Sa – Trường Sa vẫn có thể sử dụng. Hãy kiểm tra kết nối Internet rồi tải lại trang.</div>`;
+        return;
+      }
+      try {
+        if (geoLayer) map.removeLayer(geoLayer);
+        geoLayer = L.geoJSON(data, { style: styleFeature, onEachFeature }).addTo(map);
+        if (geoLayer.getBounds().isValid()) fitVietnam();
+        const matched = new Set();
+        geoLayer.eachLayer(layer => {
+          const p = findProvinceFromProperties(layer.feature && layer.feature.properties);
+          if (p) matched.add(p.name);
+        });
+        loader.innerHTML = `<div class="loader-main">Đã tải ${data.features.length} vùng địa giới</div><div class="loader-sub">${matched.size}/34 địa phương được nhận diện. Các mốc Hoàng Sa – Trường Sa đã được tích hợp trên cùng bản đồ.</div>`;
+        setTimeout(() => loader.classList.add("hidden"), 900);
+        if (matched.size < 30) console.warn("Chỉ nhận diện được", matched.size, "/34 địa phương. Ví dụ thuộc tính:", data.features[0] && data.features[0].properties);
+      } catch (error) {
+        console.error(error);
+        loader.innerHTML = `<div style="font-size:28px">ⓘ</div><div class="loader-main">Dữ liệu bản đồ có lỗi hiển thị</div><div class="loader-sub">${escapeHtml(error.message)}<br><br>Bạn vẫn có thể chọn địa phương trong danh sách bên phải.</div>`;
+      }
+    }
+
+    document.getElementById("searchInput").addEventListener("input", e => {
+      currentSearch = e.target.value;
+      renderList();
+    });
+    document.querySelectorAll(".filter").forEach(btn => btn.addEventListener("click", () => {
+      document.querySelectorAll(".filter").forEach(x => x.classList.toggle("active", x === btn));
+      currentFilter = btn.dataset.filter;
+      renderList();
+    }));
+
+    renderList();
+    if (window.L) {
+      initMap();
+      loadGeoJSON();
+    } else {
+      const loader = document.getElementById("mapLoader");
+      if (loader) loader.innerHTML = `<div style="font-size:28px">ⓘ</div><div class="loader-main">Không tải được thư viện bản đồ</div><div class="loader-sub">Trình duyệt hoặc mạng hiện tại không tải được Leaflet. Danh sách 34 tỉnh, thành vẫn dùng được; hãy kết nối Internet rồi tải lại trang.</div>`;
+    }
+  </script>
+</body>
+</html>
